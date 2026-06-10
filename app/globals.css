@@ -1,26 +1,114 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #000000;
+  --fg: #ffffff;
+  --muted: rgba(255, 255, 255, 0.52);
+  --line-soft: rgba(255, 255, 255, 0.18);
+  --accent: #ffffff;
+
+  --text-label: 0.6875rem;
+  --text-caption: 0.8125rem;
+  --text-header-email: 0.8125rem;
+  --text-body: 0.9375rem;
+  --text-bio: 1.0625rem;
+  --text-role: 1.125rem;
+  --text-lead: clamp(1.5rem, 2.2vw, 1.875rem);
+  --text-display: clamp(3.5rem, 6.5vw, 5.5rem);
+
+  --spacing-header: 3.25rem;
+  --spacing-page: 2.75rem;
+  --spacing-col: 2.5rem;
+  --spacing-block: 3rem;
+  --spacing-content: 64rem;
+
+  --logo-side: 26px;
+  --logo-half: 13px;
+  --logo-border: rgba(255, 255, 255, 0.3);
+  --logo-border-inner: rgba(255, 255, 255, 0.14);
+  --logo-top-from: rgba(255, 255, 255, 0.22);
+  --logo-top-to: rgba(255, 255, 255, 0.08);
+  --logo-right-from: rgba(255, 255, 255, 0.14);
+  --logo-right-to: rgba(255, 255, 255, 0.05);
+  --logo-left-from: rgba(255, 255, 255, 0.1);
+  --logo-left-to: rgba(255, 255, 255, 0.04);
+  --logo-back: rgba(255, 255, 255, 0.03);
+  --logo-bottom: rgba(255, 255, 255, 0.04);
+  --logo-inset-hi: rgba(255, 255, 255, 0.18);
+  --logo-inset-lo: rgba(0, 0, 0, 0.38);
+  --logo-glow: rgba(255, 255, 255, 0.14);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html[data-theme="light"] {
+  --bg: #f8fafc;
+  --fg: #0f172a;
+  --muted: rgba(71, 85, 105, 0.72);
+  --line-soft: rgba(15, 23, 42, 0.16);
+  --accent: #0284c7;
+  --logo-border: rgba(15, 23, 42, 0.22);
+  --logo-border-inner: rgba(15, 23, 42, 0.1);
+  --logo-top-from: rgba(15, 23, 42, 0.14);
+  --logo-top-to: rgba(15, 23, 42, 0.06);
+  --logo-right-from: rgba(15, 23, 42, 0.12);
+  --logo-right-to: rgba(15, 23, 42, 0.05);
+  --logo-left-from: rgba(15, 23, 42, 0.1);
+  --logo-left-to: rgba(15, 23, 42, 0.04);
+  --logo-back: rgba(15, 23, 42, 0.05);
+  --logo-bottom: rgba(15, 23, 42, 0.06);
+  --logo-inset-hi: rgba(255, 255, 255, 0.85);
+  --logo-inset-lo: rgba(15, 23, 42, 0.1);
+  --logo-glow: rgba(15, 23, 42, 0.14);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@theme {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line-soft: var(--line-soft);
+  --color-accent: var(--accent);
+
+  --font-sans: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+
+  --text-label: var(--text-label);
+  --text-caption: var(--text-caption);
+  --text-header-email: var(--text-header-email);
+  --font-header: var(--font-space-grotesk), "Pretendard", sans-serif;
+  --text-body: var(--text-body);
+  --text-bio: var(--text-bio);
+  --text-role: var(--text-role);
+  --text-lead: var(--text-lead);
+  --text-display: var(--text-display);
+
+  --tracking-label: 0.1em;
+  --tracking-tight: -0.02em;
+  --tracking-display: -0.035em;
+
+  --spacing-header: var(--spacing-header);
+  --spacing-page: var(--spacing-page);
+  --spacing-col: var(--spacing-col);
+  --spacing-block: var(--spacing-block);
+  --max-width-content: var(--spacing-content);
+}
+
+[data-scroll-root] {
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: calc(var(--spacing-header) + 1.25rem);
+  overscroll-behavior-y: contain;
+  scroll-behavior: auto;
+}
+
+[data-snap-section] {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+@keyframes caret-blink {
+  0%,
+  48% {
+    opacity: 1;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  49%,
+  100% {
+    opacity: 0;
+  }
 }
