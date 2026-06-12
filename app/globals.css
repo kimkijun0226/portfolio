@@ -91,6 +91,9 @@ html[data-theme="light"] {
 }
 
 [data-scroll-root] {
+  height: 100%;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   scroll-snap-type: y mandatory;
   scroll-padding-top: calc(var(--spacing-header) + 1.25rem);
   overscroll-behavior-y: contain;
@@ -100,6 +103,10 @@ html[data-theme="light"] {
 [data-snap-section] {
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+
+#contact {
+  scroll-snap-align: end;
 }
 
 @keyframes caret-blink {

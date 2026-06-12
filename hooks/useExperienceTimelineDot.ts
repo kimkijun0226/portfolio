@@ -1,23 +1,29 @@
 "use client";
 
 import { type RefObject, useEffect } from "react";
-import { formatPeriod } from "@/data/experience";
 import { subscribeScrollFrame } from "@/lib/scroll-frame";
 import { getSectionOffsetTop } from "@/lib/scroll-utils";
 
-const DOT_START_OFFSET = 28;
+const DOT_START_OFFSET = 0;
 const DOT_END_PADDING = 16;
-const ANCHOR_RATIO = 0.5;
+const ANCHOR_RATIO = 0.2;
+const HANDOFF_ZONE = 96;
 
 type TimelineItemCache = {
+  itemEl: HTMLElement;
+  dotEl: HTMLElement;
+  metaEl: HTMLElement;
   itemTopAbs: number;
   itemBottomAbs: number;
-  itemTopInList: number;
   itemHeight: number;
   color: string;
-  company: string;
-  period: string;
 };
+
+function smoothstep(value: number) {
+  const t = Math.min(1, Math.max(0, value));
+
+  return t * t * (3 - 2 * t);
+}
 
 function getOffsetWithin(ancestor: HTMLElement, element: HTMLElement) {
   let top = 0;
@@ -35,48 +41,108 @@ function getOffsetWithin(ancestor: HTMLElement, element: HTMLElement) {
   return top;
 }
 
+function getDotEndInItem(itemHeight: number) {
+  return Math.max(DOT_START_OFFSET + 8, itemHeight - DOT_END_PADDING);
+}
+
 function getDotOffsetInItem(
-  itemTop: number,
-  itemBottom: number,
+  itemTopAbs: number,
+  itemBottomAbs: number,
   itemHeight: number,
   anchorScroll: number
 ) {
   const dotStart = DOT_START_OFFSET;
-  const dotEnd = Math.max(dotStart + 8, itemHeight - DOT_END_PADDING);
-  const travel = dotEnd - dotStart;
+  const dotEnd = getDotEndInItem(itemHeight);
 
-  if (anchorScroll <= itemTop) {
+  if (anchorScroll <= itemTopAbs) {
     return dotStart;
   }
 
-  if (anchorScroll >= itemBottom) {
+  if (anchorScroll >= itemBottomAbs) {
     return dotEnd;
   }
 
-  const progress = (anchorScroll - itemTop) / (itemBottom - itemTop);
+  const progress = (anchorScroll - itemTopAbs) / (itemBottomAbs - itemTopAbs);
 
-  return dotStart + progress * travel;
+  return dotStart + progress * (dotEnd - dotStart);
 }
 
-function findActiveIndex(anchorScroll: number, items: TimelineItemCache[]) {
-  let activeIndex = 0;
+function computeItemStates(anchorScroll: number, items: TimelineItemCache[]) {
+  const glows = new Array<number>(items.length).fill(0);
+  const dotOffsets = new Array<number>(items.length).fill(DOT_START_OFFSET);
+
+  if (items.length === 0) {
+    return { glows, dotOffsets };
+  }
+
+  const first = items[0];
+
+  if (anchorScroll < first.itemTopAbs) {
+    const ramp = smoothstep((anchorScroll - (first.itemTopAbs - 120)) / 120);
+    glows[0] = ramp;
+    return { glows, dotOffsets };
+  }
 
   for (let index = 0; index < items.length; index += 1) {
-    if (anchorScroll >= items[index].itemTopAbs - 1) {
-      activeIndex = index;
+    const item = items[index];
+    const next = items[index + 1];
+
+    if (anchorScroll >= item.itemTopAbs && anchorScroll < item.itemBottomAbs) {
+      dotOffsets[index] = getDotOffsetInItem(
+        item.itemTopAbs,
+        item.itemBottomAbs,
+        item.itemHeight,
+        anchorScroll
+      );
+
+      if (next) {
+        const handoffStart = Math.max(
+          item.itemTopAbs,
+          item.itemBottomAbs - HANDOFF_ZONE
+        );
+
+        if (anchorScroll >= handoffStart) {
+          const progress =
+            (anchorScroll - handoffStart) / (item.itemBottomAbs - handoffStart);
+          const handoff = smoothstep(progress);
+          glows[index] = 1 - handoff;
+          glows[index + 1] = handoff;
+          dotOffsets[index + 1] = DOT_START_OFFSET;
+          return { glows, dotOffsets };
+        }
+      }
+
+      glows[index] = 1;
+      return { glows, dotOffsets };
+    }
+
+    if (
+      next &&
+      anchorScroll >= item.itemBottomAbs &&
+      anchorScroll < next.itemTopAbs
+    ) {
+      const progress =
+        (anchorScroll - item.itemBottomAbs) /
+        (next.itemTopAbs - item.itemBottomAbs);
+      const handoff = smoothstep(progress);
+      glows[index] = 1 - handoff;
+      glows[index + 1] = handoff;
+      dotOffsets[index] = getDotEndInItem(item.itemHeight);
+      dotOffsets[index + 1] = DOT_START_OFFSET;
+      return { glows, dotOffsets };
     }
   }
 
-  return activeIndex;
+  const last = items[items.length - 1];
+  glows[items.length - 1] = 1;
+  dotOffsets[items.length - 1] = getDotEndInItem(last.itemHeight);
+
+  return { glows, dotOffsets };
 }
 
 export function useExperienceTimelineDot(
   sectionRef: RefObject<HTMLElement | null>,
   listRef: RefObject<HTMLUListElement | null>,
-  dotTrackRef: RefObject<HTMLElement | null>,
-  dotFaceRef: RefObject<HTMLElement | null>,
-  metaCompanyRef: RefObject<HTMLParagraphElement | null>,
-  metaPeriodRef: RefObject<HTMLTimeElement | null>,
   wrapperRef: RefObject<HTMLElement | null>,
   contentRef: RefObject<HTMLElement | null>
 ) {
@@ -84,67 +150,54 @@ export function useExperienceTimelineDot(
     const wrapper = wrapperRef.current;
     const section = sectionRef.current;
     const list = listRef.current;
-    const dotTrack = dotTrackRef.current;
-    const dotFace = dotFaceRef.current;
-    const metaCompany = metaCompanyRef.current;
-    const metaPeriod = metaPeriodRef.current;
     const content = contentRef.current;
 
-    if (
-      !wrapper ||
-      !section ||
-      !list ||
-      !dotTrack ||
-      !dotFace ||
-      !metaCompany ||
-      !metaPeriod ||
-      !content
-    ) {
+    if (!wrapper || !section || !list || !content) {
       return;
     }
 
     let sectionTop = 0;
     let sectionBottom = 0;
     let itemsCache: TimelineItemCache[] = [];
-    let lastActiveIndex = -1;
-    let lastColor = "";
-    let lastDotY = Number.NaN;
 
     const rebuildCache = () => {
-      const list = listRef.current;
+      const listNode = listRef.current;
 
-      if (!list) {
+      if (!listNode) {
         itemsCache = [];
         return;
       }
 
       sectionTop = getSectionOffsetTop(section, content);
       sectionBottom = sectionTop + section.offsetHeight;
-      const listTop = getOffsetWithin(section, list);
+      const listTop = getOffsetWithin(section, listNode);
 
       itemsCache = Array.from(
-        list.querySelectorAll<HTMLElement>("li[data-timeline-item]")
-      ).map((item) => {
-        const itemTopInList = item.offsetTop;
-        const itemTopAbs = sectionTop + listTop + itemTopInList;
-        const itemHeight = item.offsetHeight;
+        listNode.querySelectorAll<HTMLElement>("li[data-timeline-item]")
+      )
+        .map((item) => {
+          const dotEl = item.querySelector<HTMLElement>("[data-timeline-dot]");
+          const metaEl = item.querySelector<HTMLElement>("[data-timeline-meta]");
 
-        return {
-          itemTopAbs,
-          itemBottomAbs: itemTopAbs + itemHeight,
-          itemTopInList,
-          itemHeight,
-          color: item.dataset.color ?? "#ffffff",
-          company: item.dataset.company ?? "",
-          period: item.dataset.period ?? "",
-        };
-      });
-    };
+          if (!dotEl || !metaEl) {
+            return null;
+          }
 
-    const syncMetaText = (item: TimelineItemCache) => {
-      metaCompany.textContent = item.company;
-      metaPeriod.textContent = formatPeriod(item.period);
-      metaPeriod.dateTime = item.period.replace(/\s*—\s*/, "/");
+          const itemTopInList = item.offsetTop;
+          const itemTopAbs = sectionTop + listTop + itemTopInList;
+          const itemHeight = item.offsetHeight;
+
+          return {
+            itemEl: item,
+            dotEl,
+            metaEl,
+            itemTopAbs,
+            itemBottomAbs: itemTopAbs + itemHeight,
+            itemHeight,
+            color: item.dataset.color ?? "#ffffff",
+          };
+        })
+        .filter((entry): entry is TimelineItemCache => entry !== null);
     };
 
     const update = () => {
@@ -162,35 +215,19 @@ export function useExperienceTimelineDot(
       }
 
       const anchorScroll = scrollTop + wrapperHeight * ANCHOR_RATIO;
-      const activeIndex = findActiveIndex(anchorScroll, itemsCache);
-      const activeItem = itemsCache[activeIndex];
-      const dotInItem = getDotOffsetInItem(
-        activeItem.itemTopAbs,
-        activeItem.itemBottomAbs,
-        activeItem.itemHeight,
-        anchorScroll
-      );
-      const dotY = activeItem.itemTopInList + dotInItem;
+      const { glows, dotOffsets } = computeItemStates(anchorScroll, itemsCache);
 
-      if (activeIndex !== lastActiveIndex) {
-        syncMetaText(activeItem);
-        lastActiveIndex = activeIndex;
-      }
+      itemsCache.forEach((item, index) => {
+        const glow = glows[index];
+        const offset = dotOffsets[index];
 
-      if (activeItem.color !== lastColor) {
-        dotFace.style.setProperty("--project-color", activeItem.color);
-        lastColor = activeItem.color;
-      }
-
-      if (dotY !== lastDotY) {
-        list.style.setProperty("--dot-y", `${dotY}px`);
-        lastDotY = dotY;
-      }
+        item.itemEl.style.setProperty("--track-offset", `${offset}px`);
+        item.itemEl.style.setProperty("--track-glow", glow.toFixed(3));
+        item.dotEl.style.setProperty("--project-color", item.color);
+      });
     };
 
     const onResize = () => {
-      lastDotY = Number.NaN;
-      lastActiveIndex = -1;
       rebuildCache();
       update();
     };
@@ -208,16 +245,11 @@ export function useExperienceTimelineDot(
       unsubscribe();
       resizeObserver.disconnect();
       window.removeEventListener("resize", onResize);
-      list.style.removeProperty("--dot-y");
+
+      itemsCache.forEach((item) => {
+        item.itemEl.style.removeProperty("--track-offset");
+        item.itemEl.style.removeProperty("--track-glow");
+      });
     };
-  }, [
-    sectionRef,
-    listRef,
-    dotTrackRef,
-    dotFaceRef,
-    metaCompanyRef,
-    metaPeriodRef,
-    wrapperRef,
-    contentRef,
-  ]);
+  }, [sectionRef, listRef, wrapperRef, contentRef]);
 }

@@ -26,7 +26,7 @@ export default function RootLayout({
       data-theme="dark"
       className={`h-full ${spaceGrotesk.variable}`}
     >
-      <body className="h-full overflow-hidden bg-bg font-sans text-fg antialiased">
+      <body className="h-full overflow-hidden overscroll-none bg-bg font-sans text-fg antialiased">
         {children}
         <AppToaster />
       </body>

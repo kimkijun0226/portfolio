@@ -1,4 +1,20 @@
-.dotTrack {
+.itemMeta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 5.75rem;
+  pointer-events: none;
+  text-align: right;
+  transform: translate3d(
+    calc(0.4375rem - 5.75rem - 0.5rem),
+    var(--track-offset, 0px),
+    0
+  );
+  opacity: calc(0.32 + 0.68 * var(--track-glow, 0));
+}
+
+.itemDot {
   position: absolute;
   top: 0;
   left: 0;
@@ -6,32 +22,34 @@
   width: 0.875rem;
   height: 0.875rem;
   pointer-events: none;
-  transform: translate3d(calc(0.4375rem - 50%), var(--dot-y, 1.75rem), 0);
+  transform: translate3d(
+    calc(0.4375rem - 50%),
+    var(--track-offset, 0px),
+    0
+  );
 }
 
-.dot {
+.itemDotCore {
   display: block;
   width: 100%;
   height: 100%;
   border-radius: 50%;
   border: 2px solid color-mix(in srgb, var(--bg) 70%, transparent);
   background: var(--project-color);
+  opacity: calc(0.22 + 0.78 * var(--track-glow, 0));
+  transform: scale(calc(0.62 + 0.38 * var(--track-glow, 0)));
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--project-color) 30%, transparent),
-    0 0 14px color-mix(in srgb, var(--project-color) 42%, transparent);
-}
-
-.metaTrack {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 20;
-  width: 5.75rem;
-  pointer-events: none;
-  text-align: right;
-  transform: translate3d(
-    calc(0.4375rem - 5.75rem - 0.5rem),
-    var(--dot-y, 1.75rem),
-    0
-  );
+    0 0 0 1px
+      color-mix(
+        in srgb,
+        var(--project-color) calc(18% + 22% * var(--track-glow, 0)),
+        transparent
+      ),
+    0 0 calc(4px + 16px * var(--track-glow, 0))
+      color-mix(
+        in srgb,
+        var(--project-color) calc(12% + 40% * var(--track-glow, 0)),
+        transparent
+      );
+  will-change: transform, opacity, box-shadow;
 }

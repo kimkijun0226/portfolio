@@ -99,7 +99,6 @@ export function HeroSection() {
 
         <ScrollIndicator />
       </div>
-      <div className={ds.layout.sectionSnapPad} aria-hidden />
     </section>
   );
 }

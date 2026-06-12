@@ -12,7 +12,6 @@ import { ds } from "@/lib/design-system";
 import timelineStyles from "./ExperienceTimeline.module.css";
 
 const TIMELINE_X = "0.4375rem";
-const firstProject = contributedProjects[0];
 
 type ExperienceSectionProps = {
   wrapperRef: RefObject<HTMLElement | null>;
@@ -25,18 +24,10 @@ export function ExperienceSection({
 }: ExperienceSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const dotTrackRef = useRef<HTMLSpanElement>(null);
-  const dotFaceRef = useRef<HTMLSpanElement>(null);
-  const metaCompanyRef = useRef<HTMLParagraphElement>(null);
-  const metaPeriodRef = useRef<HTMLTimeElement>(null);
 
   useExperienceTimelineDot(
     sectionRef,
     listRef,
-    dotTrackRef,
-    dotFaceRef,
-    metaCompanyRef,
-    metaPeriodRef,
     wrapperRef,
     contentRef
   );
@@ -49,7 +40,7 @@ export function ExperienceSection({
       className={ds.layout.sectionTall}
     >
       <div
-        className={`overflow-visible px-[5%] pb-32 ${ds.layout.sectionTitlePad}`}
+        className={`overflow-visible px-[5%] pb-[calc(4rem+50dvh)] ${ds.layout.sectionTitlePad}`}
       >
         <div className="mx-auto w-full max-w-[90%] overflow-visible">
           <header data-reveal className="mb-12">
@@ -71,48 +62,47 @@ export function ExperienceSection({
               aria-hidden
             />
 
-            <span className={timelineStyles.metaTrack} aria-hidden>
-              <p
-                ref={metaCompanyRef}
-                className="text-[0.6875rem] leading-snug font-medium text-fg/75"
-              >
-                {firstProject?.company}
-              </p>
-              <time
-                ref={metaPeriodRef}
-                dateTime={firstProject?.period.replace(/\s*—\s*/, "/") ?? ""}
-                className="mt-1.5 block text-[0.75rem] leading-relaxed tracking-tight text-muted tabular-nums"
-              >
-                {firstProject ? formatPeriod(firstProject.period) : ""}
-              </time>
-            </span>
-
-            <span
-              ref={dotTrackRef}
-              className={timelineStyles.dotTrack}
-              aria-hidden
-            >
-              <span
-                ref={dotFaceRef}
-                className={timelineStyles.dot}
-                style={
-                  {
-                    "--project-color": firstProject?.color ?? "#ffffff",
-                  } as CSSProperties
-                }
-              />
-            </span>
-
-            {contributedProjects.map((project) => (
+            {contributedProjects.map((project, index) => (
               <li
                 key={project.id}
                 data-timeline-item
                 data-color={project.color}
-                data-company={project.company}
-                data-period={project.period}
                 className="relative overflow-visible pl-8"
+                style={
+                  {
+                    "--track-glow": index === 0 ? "1" : "0",
+                    "--track-offset": "0px",
+                  } as CSSProperties
+                }
               >
-                <ExperienceCard project={project} />
+                <span
+                  data-timeline-meta
+                  className={timelineStyles.itemMeta}
+                  aria-hidden
+                >
+                  <p className="text-[0.6875rem] leading-snug font-medium text-fg/75">
+                    {project.company}
+                  </p>
+                  <time
+                    dateTime={project.period.replace(/\s*—\s*/, "/")}
+                    className="mt-1.5 block text-[0.75rem] leading-relaxed tracking-tight text-muted tabular-nums"
+                  >
+                    {formatPeriod(project.period)}
+                  </time>
+                </span>
+
+                <span
+                  data-timeline-dot
+                  className={timelineStyles.itemDot}
+                  style={
+                    { "--project-color": project.color } as CSSProperties
+                  }
+                  aria-hidden
+                >
+                  <span className={timelineStyles.itemDotCore} />
+                </span>
+
+                <ExperienceCard project={project} revealDelay={index * 0.08} />
               </li>
             ))}
           </ul>

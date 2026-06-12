@@ -2,7 +2,7 @@
 
 import { type RefObject, useRef } from "react";
 import { ProjectCard } from "@/components/ProjectCard";
-import { projects, projectsIntro } from "@/data/projects";
+import type { Project } from "@/data/projects";
 import { useProjectsHorizontalScroll } from "@/hooks/useProjectsHorizontalScroll";
 import { ds } from "@/lib/design-system";
 
@@ -10,11 +10,15 @@ const CONTENT_WIDTH =
   "mx-auto w-full max-w-[min(76rem,94vw)] px-[clamp(1rem,4vw,2.5rem)]";
 
 type ProjectsSectionProps = {
+  projects: Project[];
+  projectsIntro: string;
   wrapperRef: RefObject<HTMLElement | null>;
   contentRef: RefObject<HTMLElement | null>;
 };
 
 export function ProjectsSection({
+  projects,
+  projectsIntro,
   wrapperRef,
   contentRef,
 }: ProjectsSectionProps) {
@@ -49,10 +53,11 @@ export function ProjectsSection({
         />
       ))}
 
-      <div className="sticky top-0 h-dvh w-full overflow-hidden">
-        <div
-          className={`relative flex h-full w-full flex-col items-center justify-center gap-8 pb-16 ${ds.layout.sectionTitlePad}`}
-        >
+      <div
+        data-projects-sticky
+        className="sticky top-0 h-svh w-full overflow-hidden"
+      >
+        <div className="relative flex h-full min-h-0 w-full flex-col items-center justify-center gap-3 pb-8 sm:gap-4">
           <header data-reveal className={`${CONTENT_WIDTH} shrink-0`}>
             <h2 className="text-[clamp(2.25rem,4.5vw,3.25rem)] leading-none font-bold tracking-tight text-fg">
               Projects
@@ -66,18 +71,20 @@ export function ProjectsSection({
             ref={viewportRef}
             data-reveal
             data-reveal-delay="0.12"
-            className="flex min-h-0 w-full flex-1 items-center overflow-hidden"
+            className="w-full shrink-0 overflow-hidden"
           >
             <div
               ref={trackRef}
-              className="flex h-[min(58vh,32rem)] will-change-transform"
+              className="flex h-auto min-h-0 max-h-none will-change-transform lg:h-full lg:max-h-[min(58vh,32rem)]"
             >
               {projects.map((project) => (
                 <div
                   key={project.id}
-                  className="flex h-full shrink-0 items-center justify-center"
+                  className="flex h-auto min-h-0 shrink-0 items-stretch justify-center lg:h-full"
                 >
-                  <div className={`${CONTENT_WIDTH} h-full`}>
+                  <div
+                    className={`${CONTENT_WIDTH} flex h-auto min-h-0 w-full lg:h-full`}
+                  >
                     <ProjectCard project={project} layout="full" />
                   </div>
                 </div>

@@ -5,6 +5,52 @@ import { gsap, registerGsapPlugins, ScrollTrigger } from "@/lib/gsap";
 
 const REVEAL_SELECTOR = "[data-reveal]";
 const IMMEDIATE_SELECTOR = "[data-reveal-immediate]";
+const STAGGER_SELECTOR = "[data-reveal-stagger]";
+const STAGGER_ITEM_SELECTOR = "[data-reveal-item]";
+
+const REVEAL_FROM = {
+  y: 56,
+  opacity: 0,
+  scale: 0.9,
+} as const;
+
+function createRevealTween(
+  targets: gsap.TweenTarget,
+  options: {
+    scroller?: HTMLElement;
+    trigger?: Element;
+    delay?: number;
+    stagger?: number;
+    start?: string;
+  }
+) {
+  const {
+    scroller,
+    trigger = Array.isArray(targets) ? undefined : (targets as Element),
+    delay = 0,
+    stagger = 0,
+    start = "top 86%",
+  } = options;
+
+  const tweenVars: gsap.TweenVars = {
+    ...REVEAL_FROM,
+    duration: 0.9,
+    delay,
+    stagger: stagger > 0 ? stagger : undefined,
+    ease: "back.out(1.6)",
+  };
+
+  if (scroller && trigger) {
+    tweenVars.scrollTrigger = {
+      trigger,
+      scroller,
+      start,
+      toggleActions: "play none none none",
+    };
+  }
+
+  return gsap.from(targets, tweenVars);
+}
 
 export function useGsapScrollReveal(
   scrollRootRef: RefObject<HTMLElement | null>
@@ -34,14 +80,7 @@ export function useGsapScrollReveal(
       const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
 
       tweens.push(
-        gsap.from(element, {
-          y: 48,
-          opacity: 0,
-          scale: 0.92,
-          duration: 0.9,
-          delay,
-          ease: "back.out(1.6)",
-        })
+        createRevealTween(element, { delay })
       );
     });
 
@@ -73,19 +112,10 @@ export function useGsapScrollReveal(
     elements.forEach((element) => {
       const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
 
-      const animation = gsap.from(element, {
-        y: 56,
-        opacity: 0,
-        scale: 0.9,
-        duration: 0.9,
+      const animation = createRevealTween(element, {
+        scroller,
+        trigger: element,
         delay,
-        ease: "back.out(1.6)",
-        scrollTrigger: {
-          trigger: element,
-          scroller,
-          start: "top 86%",
-          toggleActions: "play none none none",
-        },
       });
 
       const trigger = animation.scrollTrigger;
@@ -95,30 +125,21 @@ export function useGsapScrollReveal(
       }
     });
 
-    const staggerGroups = scroller.querySelectorAll<HTMLElement>(
-      "[data-reveal-stagger]"
-    );
+    const staggerGroups =
+      scroller.querySelectorAll<HTMLElement>(STAGGER_SELECTOR);
 
     staggerGroups.forEach((group) => {
-      const items = group.querySelectorAll<HTMLElement>("[data-reveal-item]");
+      const items = group.querySelectorAll<HTMLElement>(STAGGER_ITEM_SELECTOR);
 
       if (items.length === 0) {
         return;
       }
 
-      const animation = gsap.from(items, {
-        y: 48,
-        opacity: 0,
-        scale: 0.92,
-        duration: 0.85,
-        stagger: 0.1,
-        ease: "back.out(1.5)",
-        scrollTrigger: {
-          trigger: group,
-          scroller,
-          start: "top 84%",
-          toggleActions: "play none none none",
-        },
+      const animation = createRevealTween(items, {
+        scroller,
+        trigger: group,
+        start: "top 84%",
+        stagger: 0.12,
       });
 
       const trigger = animation.scrollTrigger;

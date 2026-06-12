@@ -23,7 +23,6 @@ export function SectionPlaceholder({ section }: SectionPlaceholderProps) {
           {section.label}
         </h2>
       </div>
-      <div className={ds.layout.sectionSnapPad} aria-hidden />
     </section>
   );
 }

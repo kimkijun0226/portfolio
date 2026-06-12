@@ -113,6 +113,7 @@ export function SectionNav({ activeId, onNavigate }: SectionNavProps) {
                   <SectionNavItem
                     section={section}
                     isUnderline={underlineId === section.id}
+                    isVisible={isExpanded && !isExiting}
                     onHover={setHoveredId}
                     onNavigate={onNavigate}
                   />
@@ -129,6 +130,7 @@ export function SectionNav({ activeId, onNavigate }: SectionNavProps) {
 type SectionNavItemProps = {
   section: Section;
   isUnderline: boolean;
+  isVisible: boolean;
   onHover: (id: string | null) => void;
   onNavigate: (sectionId: string) => void;
 };
@@ -136,6 +138,7 @@ type SectionNavItemProps = {
 function SectionNavItem({
   section,
   isUnderline,
+  isVisible,
   onHover,
   onNavigate,
 }: SectionNavItemProps) {
@@ -143,13 +146,23 @@ function SectionNavItem({
     <button
       type="button"
       className={`${styles.link} ${isUnderline ? styles.linkActive : ""}`}
+      style={{ "--section-color": section.color } as CSSProperties}
       onMouseEnter={() => onHover(section.id)}
       onFocus={() => onHover(section.id)}
       onClick={() => onNavigate(section.id)}
     >
-      <span className={styles.labelWrap}>
-        <span className={styles.label}>{section.label}</span>
-        <span className={styles.underline} aria-hidden />
+      <span className={styles.itemInner}>
+        <span className={styles.labelWrap}>
+          <span className={styles.label}>{section.label}</span>
+          <span className={styles.underline} aria-hidden />
+        </span>
+        <span
+          className={`${styles.description} ${
+            isVisible ? styles.descriptionVisible : ""
+          }`}
+        >
+          {section.description}
+        </span>
       </span>
     </button>
   );

@@ -8,16 +8,10 @@ import {
   useState,
 } from "react";
 import { subscribeScrollFrame } from "@/lib/scroll-frame";
-import { getSectionOffsetTop } from "@/lib/scroll-utils";
+import { getScrollPaddingTop, getSectionOffsetTop } from "@/lib/scroll-utils";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
-}
-
-function getScrollPaddingTop(scroller: HTMLElement) {
-  const parsed = Number.parseFloat(getComputedStyle(scroller).scrollPaddingTop);
-
-  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 export function useProjectsHorizontalScroll(

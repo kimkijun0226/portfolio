@@ -18,44 +18,50 @@ export function ProjectCard({ project, layout = "default" }: ProjectCardProps) {
 
   return (
     <article
-      className={`grid h-full w-full grid-cols-1 items-center gap-6 ${
+      className={`grid h-auto min-h-0 w-full grid-cols-1 content-start gap-4 overflow-visible ${
         isFull
-          ? "lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-8"
-          : "lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)] lg:gap-10"
+          ? "lg:h-full lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-center lg:gap-8"
+          : "lg:h-full lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)] lg:items-center lg:gap-10"
       }`}
     >
       <div
-        className={`relative w-full overflow-hidden rounded-2xl border border-fg/10 bg-fg/5 shadow-[0_8px_32px_rgba(0,0,0,0.2)] ${
+        className={`relative w-full shrink-0 overflow-hidden rounded-2xl border border-fg/10 bg-fg/5 shadow-[0_8px_32px_rgba(0,0,0,0.2)] ${
           isFull
-            ? "aspect-[16/11] lg:aspect-auto lg:h-[min(50vh,30rem)]"
+            ? "aspect-[16/9] max-h-[9.5rem] sm:max-h-[11.5rem] md:max-h-[13.5rem] lg:aspect-auto lg:max-h-none lg:h-[min(50vh,30rem)]"
             : "h-[min(34vh,16rem)] sm:h-[min(38vh,18rem)] lg:aspect-[4/3] lg:h-auto lg:max-h-[20rem]"
         }`}
       >
-        <Image
-          src={project.image}
-          alt={project.imageAlt}
-          fill
-          className="object-cover"
-          sizes={
-            isFull
-              ? "(max-width: 1024px) 92vw, 52vw"
-              : "(max-width: 1024px) 90vw, 42vw"
-          }
-        />
+        {project.image ? (
+          <Image
+            src={project.image}
+            alt={project.imageAlt ?? project.title}
+            fill
+            className="object-cover"
+            sizes={
+              isFull
+                ? "(max-width: 1024px) 92vw, 52vw"
+                : "(max-width: 1024px) 90vw, 42vw"
+            }
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-caption text-muted">
+            이미지 준비 중
+          </div>
+        )}
       </div>
 
-      <div className="flex min-h-0 flex-col justify-center text-left">
-        <span className="mb-2 text-label font-semibold tracking-label text-muted uppercase">
+      <div className="flex min-h-0 shrink flex-col justify-start text-left lg:justify-center">
+        <span className="mb-1.5 text-label font-semibold tracking-label text-muted uppercase sm:mb-2">
           {project.tag}
         </span>
-        <h3 className="text-[clamp(1.375rem,2.8vw,1.875rem)] leading-tight font-bold tracking-tight text-fg">
+        <h3 className="text-[clamp(1.25rem,2.8vw,1.875rem)] leading-tight font-bold tracking-tight text-fg">
           {project.title}
         </h3>
-        <p className="mt-3 text-body leading-[1.65] text-muted">
+        <p className="mt-2 text-body leading-[1.6] text-muted sm:mt-3 sm:leading-[1.65]">
           {project.description}
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
           {project.chips.map((chip) => (
             <span
               key={chip}
@@ -66,7 +72,7 @@ export function ProjectCard({ project, layout = "default" }: ProjectCardProps) {
           ))}
         </div>
 
-        <div className="mt-6 flex shrink-0 flex-wrap gap-3">
+        <div className="mt-4 flex shrink-0 flex-wrap gap-2 sm:mt-6 sm:gap-3">
           {project.liveUrl ? (
             <a
               href={project.liveUrl}

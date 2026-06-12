@@ -2,6 +2,27 @@ export const SNAP_THRESHOLD_RATIO = 0.35;
 export const TALL_SECTION_IDS = new Set(["experience"]);
 export const TALL_SECTION_BOUNDARY_RATIO = 0.2;
 
+export function getScrollPaddingTop(scroller: HTMLElement) {
+  const parsed = Number.parseFloat(getComputedStyle(scroller).scrollPaddingTop);
+
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function getSectionScrollTarget(
+  sectionId: string,
+  element: HTMLElement,
+  content: HTMLElement,
+  wrapper: HTMLElement
+) {
+  const top = getSectionOffsetTop(element, content);
+
+  if (sectionId === "contact") {
+    return top + element.offsetHeight - wrapper.clientHeight;
+  }
+
+  return top;
+}
+
 export function getSectionOffsetTop(
   element: HTMLElement,
   content: HTMLElement

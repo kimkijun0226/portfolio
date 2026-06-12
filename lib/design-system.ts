@@ -15,11 +15,9 @@ export const ds = {
   },
   layout: {
     line: "block whitespace-nowrap max-sm:whitespace-normal max-sm:break-keep",
-    page: "relative z-10 h-dvh min-h-0 overflow-y-auto overscroll-y-contain",
-    sectionShell: "relative h-dvh shrink-0 overflow-hidden",
-    sectionSnapPad:
-      "pointer-events-none absolute inset-x-0 bottom-0 h-[25dvh]",
-    sectionTall: "relative min-h-dvh shrink-0 overflow-x-clip",
+    page: "relative z-10 h-full min-h-0 overflow-y-auto overscroll-y-contain",
+    sectionShell: "relative h-svh max-h-svh shrink-0 overflow-hidden",
+    sectionTall: "relative min-h-dvh shrink-0",
     sectionProjects: "relative shrink-0",
     hero:
       "relative flex h-full items-center justify-center px-4 pb-16 sm:px-page",
@@ -27,6 +25,8 @@ export const ds = {
       "flex min-h-dvh items-center justify-center px-4 pb-16 sm:px-page",
     sectionTitlePad:
       "pt-[calc(var(--spacing-header)*2+0.75rem)]",
+    sectionStickyPad:
+      "pt-[calc(var(--spacing-header)+1.25rem)]",
     sectionWithTitle:
       "flex h-full flex-col justify-center px-4 pb-16 sm:px-page",
     grid:

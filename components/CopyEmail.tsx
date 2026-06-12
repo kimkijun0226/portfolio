@@ -2,8 +2,9 @@
 
 import { toast } from "sonner";
 import { HoverTooltip } from "@/components/HoverTooltip";
+import { contact } from "@/data/contact";
 
-const EMAIL = "rlawhs123@gmail.com";
+const EMAIL = contact.email;
 
 type CopyEmailProps = {
   className?: string;
