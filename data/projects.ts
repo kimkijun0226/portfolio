@@ -12,7 +12,7 @@ export type Project = {
 };
 
 export const projectsIntro =
-  "개인적으로 기획하고 만들어 본 사이드 프로젝트들입니다.";
+  "개인적으로 만들어 본 사이드 프로젝트들입니다.";
 
 export const fallbackProjects: Project[] = [
   {

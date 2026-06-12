@@ -17,7 +17,7 @@ export function formatPeriod(period: string) {
 }
 
 export const experienceIntro =
-  "제품과 사용자 경험을 개선하며 성장해 온 기여 프로젝트입니다.";
+  "회사에서 기여한 프로젝트들입니다.";
 
 export const contributedProjects: ContributedProject[] = [
   {
