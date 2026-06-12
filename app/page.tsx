@@ -1,7 +1,8 @@
 import { HomePage } from "@/components/HomePage";
 import { getPortfolioProjects } from "@/lib/projects/getPortfolioProjects";
 
-export const revalidate = 60;
+// 블로그 topic 변경을 새로고침마다 반영 (ISR 캐시 없음)
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   const projects = await getPortfolioProjects();
