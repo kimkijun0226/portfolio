@@ -1,5 +1,8 @@
 import { fallbackProjects, projectsIntro, type Project } from "@/data/projects";
-import { extractBlockNotePlainText } from "@/lib/blocknote";
+import {
+  extractBlockNotePlainText,
+  extractBlockNotePortfolioLinks,
+} from "@/lib/blocknote";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const PORTFOLIO_TOPIC_CATEGORY = "portfolio";
@@ -16,18 +19,12 @@ type PortfolioTopicRow = {
   portfolio_tag: string | null;
 };
 
-function getBlogBaseUrl() {
-  return (
-    process.env.NEXT_PUBLIC_BLOG_URL ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3000"
-  ).replace(/\/$/, "");
-}
-
 function mapTopicToProject(topic: PortfolioTopicRow): Project | null {
   if (!topic.title) {
     return null;
   }
+
+  const contentLinks = extractBlockNotePortfolioLinks(topic.content);
 
   const description =
     topic.summary?.trim() ||
@@ -42,8 +39,8 @@ function mapTopicToProject(topic: PortfolioTopicRow): Project | null {
     tag: topic.portfolio_tag ?? "사이드 프로젝트",
     image: topic.thumbnail ?? undefined,
     imageAlt: topic.title,
-    liveUrl: topic.live_url ?? `${getBlogBaseUrl()}/topic/${topic.id}`,
-    githubUrl: topic.github_url ?? undefined,
+    liveUrl: topic.live_url ?? contentLinks.liveUrl,
+    githubUrl: topic.github_url ?? contentLinks.githubUrl,
     chips: topic.portfolio_chips ?? [],
   };
 }
