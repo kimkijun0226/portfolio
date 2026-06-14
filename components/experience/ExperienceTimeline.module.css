@@ -1,0 +1,39 @@
+.tracker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  width: 100%;
+  pointer-events: none;
+}
+
+.trackerMeta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5.75rem;
+  text-align: right;
+  transform: translate3d(calc(0.4375rem - 5.75rem - 0.5rem), 0, 0);
+  opacity: 1;
+}
+
+.trackerDot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  transform: translate3d(calc(0.4375rem - 50%), 0, 0);
+}
+
+.trackerDotCore {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--bg) 70%, transparent);
+  background: var(--project-color);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--project-color) 40%, transparent),
+    0 0 12px color-mix(in srgb, var(--project-color) 52%, transparent);
+}

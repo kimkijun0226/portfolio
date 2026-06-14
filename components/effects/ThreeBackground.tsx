@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { getScrollFrameIsScrolling } from "@/lib/scroll/frame";
 
 const RIBBON_VERTEX_SHADER = `
   varying vec3 vEC;
@@ -66,6 +67,14 @@ const RIBBON_FRAGMENT_SHADER = `
 
 type ThemeMode = "dark" | "light";
 
+function getPixelRatio() {
+  return Math.min(window.devicePixelRatio || 1, 1.5);
+}
+
+function getParticleCount() {
+  return window.matchMedia("(max-width: 768px)").matches ? 1200 : 2200;
+}
+
 function getThemeMode(): ThemeMode {
   return document.documentElement.dataset.theme === "light" ? "light" : "dark";
 }
@@ -97,13 +106,17 @@ export function ThreeBackground() {
     const particleCamera = new THREE.PerspectiveCamera(70, width / height);
     particleCamera.lookAt(0, 0, 0);
 
-    const particleRenderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-    particleRenderer.setPixelRatio(window.devicePixelRatio);
+    const particleRenderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      powerPreference: "high-performance",
+    });
+    particleRenderer.setPixelRatio(getPixelRatio());
     particleRenderer.setSize(width, height);
 
     const vertices: number[] = [];
     const SIZE = 3000;
-    const LENGTH = 3000;
+    const LENGTH = getParticleCount();
 
     for (let i = 0; i < LENGTH; i += 1) {
       vertices.push(
@@ -128,8 +141,9 @@ export function ThreeBackground() {
     ribbonCamera.position.z = 2;
 
     const ribbonRenderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: false,
       alpha: true,
+      powerPreference: "high-performance",
     });
     ribbonContainer.appendChild(ribbonRenderer.domElement);
 
@@ -146,7 +160,7 @@ export function ThreeBackground() {
     });
 
     const ribbon = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 1, 128, 128),
+      new THREE.PlaneGeometry(1, 1, 64, 64),
       ribbonMaterial
     );
     ribbonScene.add(ribbon);
@@ -168,14 +182,14 @@ export function ThreeBackground() {
       const nextHeight = window.innerHeight;
       particleCamera.aspect = nextWidth / nextHeight;
       particleCamera.updateProjectionMatrix();
-      particleRenderer.setPixelRatio(window.devicePixelRatio);
+      particleRenderer.setPixelRatio(getPixelRatio());
       particleRenderer.setSize(nextWidth, nextHeight);
     };
 
     const resizeRibbon = () => {
       const { offsetWidth, offsetHeight } = ribbonContainer;
       ribbonRenderer.setSize(offsetWidth, offsetHeight);
-      ribbonRenderer.setPixelRatio(window.devicePixelRatio);
+      ribbonRenderer.setPixelRatio(getPixelRatio());
       ribbonCamera.aspect = offsetWidth / offsetHeight;
       ribbonCamera.updateProjectionMatrix();
       ribbon.scale.set(ribbonCamera.aspect * 1.55, 0.75, 1);
@@ -187,17 +201,35 @@ export function ThreeBackground() {
     };
 
     const renderLoop = () => {
-      rot += 0.1;
-      const radian = (rot * Math.PI) / 180;
-      particleCamera.position.x = 1000 * Math.sin(radian);
-      particleCamera.position.z = 1000 * Math.cos(radian);
-      particleMesh.rotation.y += 0.001;
-      particleRenderer.render(particleScene, particleCamera);
+      if (document.hidden) {
+        animationId = window.requestAnimationFrame(renderLoop);
+        return;
+      }
 
-      ribbonMaterial.uniforms.time.value += 0.01;
-      ribbonRenderer.render(ribbonScene, ribbonCamera);
+      const isScrolling = getScrollFrameIsScrolling();
+
+      if (!isScrolling) {
+        rot += 0.1;
+        const radian = (rot * Math.PI) / 180;
+        particleCamera.position.x = 1000 * Math.sin(radian);
+        particleCamera.position.z = 1000 * Math.cos(radian);
+        particleMesh.rotation.y += 0.001;
+        particleRenderer.render(particleScene, particleCamera);
+      }
+
+      if (!isScrolling) {
+        ribbonMaterial.uniforms.time.value += 0.01;
+        ribbonRenderer.render(ribbonScene, ribbonCamera);
+      }
 
       animationId = window.requestAnimationFrame(renderLoop);
+    };
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) {
+        resizeParticles();
+        resizeRibbon();
+      }
     };
 
     const themeObserver = new MutationObserver(() => {
@@ -223,10 +255,12 @@ export function ThreeBackground() {
     resizeRibbon();
     renderLoop();
     window.addEventListener("resize", handleResize);
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       themeObserver.disconnect();
       window.removeEventListener("resize", handleResize);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.cancelAnimationFrame(animationId);
       particleGeometry.dispose();
       particleMaterial.dispose();

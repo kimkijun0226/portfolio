@@ -1,22 +1,28 @@
 "use client";
 
 import { type RefObject, useEffect } from "react";
-import { subscribeScrollFrame } from "@/lib/scroll-frame";
-import { getSectionOffsetTop } from "@/lib/scroll-utils";
+import { subscribeScrollFrame } from "@/lib/scroll/frame";
+import { getSectionOffsetTop } from "@/lib/scroll/utils";
 
-const DOT_START_OFFSET = 0;
 const DOT_END_PADDING = 16;
 const ANCHOR_RATIO = 0.2;
-const HANDOFF_ZONE = 96;
 
 type TimelineItemCache = {
-  itemEl: HTMLElement;
-  dotEl: HTMLElement;
-  metaEl: HTMLElement;
-  itemTopAbs: number;
-  itemBottomAbs: number;
-  itemHeight: number;
+  element: HTMLElement;
+  topAbs: number;
+  bottomAbs: number;
+  topRel: number;
+  height: number;
   color: string;
+  company: string;
+  period: string;
+  periodRaw: string;
+};
+
+type TrackerState = {
+  trackerY: number;
+  color: string;
+  metaIndex: number;
 };
 
 function smoothstep(value: number) {
@@ -41,163 +47,189 @@ function getOffsetWithin(ancestor: HTMLElement, element: HTMLElement) {
   return top;
 }
 
-function getDotEndInItem(itemHeight: number) {
-  return Math.max(DOT_START_OFFSET + 8, itemHeight - DOT_END_PADDING);
+function getDotEndRel(height: number) {
+  return Math.max(8, height - DOT_END_PADDING);
 }
 
-function getDotOffsetInItem(
-  itemTopAbs: number,
-  itemBottomAbs: number,
-  itemHeight: number,
-  anchorScroll: number
-) {
-  const dotStart = DOT_START_OFFSET;
-  const dotEnd = getDotEndInItem(itemHeight);
+function mixHexColors(from: string, to: string, amount: number) {
+  const parse = (hex: string) => {
+    const normalized = hex.replace("#", "");
 
-  if (anchorScroll <= itemTopAbs) {
-    return dotStart;
+    return [
+      Number.parseInt(normalized.slice(0, 2), 16),
+      Number.parseInt(normalized.slice(2, 4), 16),
+      Number.parseInt(normalized.slice(4, 6), 16),
+    ];
+  };
+
+  try {
+    const [r1, g1, b1] = parse(from);
+    const [r2, g2, b2] = parse(to);
+    const mix = (start: number, end: number) =>
+      Math.round(start + (end - start) * amount);
+
+    const r = mix(r1, r2);
+    const g = mix(g1, g2);
+    const b = mix(b1, b2);
+
+    return `rgb(${r} ${g} ${b})`;
+  } catch {
+    return amount >= 0.5 ? to : from;
   }
-
-  if (anchorScroll >= itemBottomAbs) {
-    return dotEnd;
-  }
-
-  const progress = (anchorScroll - itemTopAbs) / (itemBottomAbs - itemTopAbs);
-
-  return dotStart + progress * (dotEnd - dotStart);
 }
 
-function computeItemStates(anchorScroll: number, items: TimelineItemCache[]) {
-  const glows = new Array<number>(items.length).fill(0);
-  const dotOffsets = new Array<number>(items.length).fill(DOT_START_OFFSET);
-
+function computeTrackerState(
+  anchorScroll: number,
+  items: TimelineItemCache[]
+): TrackerState | null {
   if (items.length === 0) {
-    return { glows, dotOffsets };
+    return null;
   }
 
   const first = items[0];
+  const last = items[items.length - 1];
 
-  if (anchorScroll < first.itemTopAbs) {
-    const ramp = smoothstep((anchorScroll - (first.itemTopAbs - 120)) / 120);
-    glows[0] = ramp;
-    return { glows, dotOffsets };
+  if (anchorScroll <= first.topAbs) {
+    return {
+      trackerY: first.topRel,
+      color: first.color,
+      metaIndex: 0,
+    };
   }
 
   for (let index = 0; index < items.length; index += 1) {
     const item = items[index];
     const next = items[index + 1];
 
-    if (anchorScroll >= item.itemTopAbs && anchorScroll < item.itemBottomAbs) {
-      dotOffsets[index] = getDotOffsetInItem(
-        item.itemTopAbs,
-        item.itemBottomAbs,
-        item.itemHeight,
-        anchorScroll
-      );
+    if (anchorScroll >= item.topAbs && anchorScroll < item.bottomAbs) {
+      const progress =
+        (anchorScroll - item.topAbs) / Math.max(item.bottomAbs - item.topAbs, 1);
 
-      if (next) {
-        const handoffStart = Math.max(
-          item.itemTopAbs,
-          item.itemBottomAbs - HANDOFF_ZONE
-        );
-
-        if (anchorScroll >= handoffStart) {
-          const progress =
-            (anchorScroll - handoffStart) / (item.itemBottomAbs - handoffStart);
-          const handoff = smoothstep(progress);
-          glows[index] = 1 - handoff;
-          glows[index + 1] = handoff;
-          dotOffsets[index + 1] = DOT_START_OFFSET;
-          return { glows, dotOffsets };
-        }
-      }
-
-      glows[index] = 1;
-      return { glows, dotOffsets };
+      return {
+        trackerY: item.topRel + progress * getDotEndRel(item.height),
+        color: item.color,
+        metaIndex: index,
+      };
     }
 
-    if (
-      next &&
-      anchorScroll >= item.itemBottomAbs &&
-      anchorScroll < next.itemTopAbs
-    ) {
-      const progress =
-        (anchorScroll - item.itemBottomAbs) /
-        (next.itemTopAbs - item.itemBottomAbs);
-      const handoff = smoothstep(progress);
-      glows[index] = 1 - handoff;
-      glows[index + 1] = handoff;
-      dotOffsets[index] = getDotEndInItem(item.itemHeight);
-      dotOffsets[index + 1] = DOT_START_OFFSET;
-      return { glows, dotOffsets };
+    if (next && anchorScroll >= item.bottomAbs && anchorScroll < next.topAbs) {
+      const gapProgress = smoothstep(
+        (anchorScroll - item.bottomAbs) / Math.max(next.topAbs - item.bottomAbs, 1)
+      );
+      const fromY = item.topRel + getDotEndRel(item.height);
+      const toY = next.topRel;
+
+      return {
+        trackerY: fromY + (toY - fromY) * gapProgress,
+        color: mixHexColors(item.color, next.color, gapProgress),
+        metaIndex: gapProgress >= 0.5 ? index + 1 : index,
+      };
     }
   }
 
-  const last = items[items.length - 1];
-  glows[items.length - 1] = 1;
-  dotOffsets[items.length - 1] = getDotEndInItem(last.itemHeight);
-
-  return { glows, dotOffsets };
+  return {
+    trackerY: last.topRel + getDotEndRel(last.height),
+    color: last.color,
+    metaIndex: items.length - 1,
+  };
 }
 
 export function useExperienceTimelineDot(
   sectionRef: RefObject<HTMLElement | null>,
+  timelineRef: RefObject<HTMLElement | null>,
   listRef: RefObject<HTMLUListElement | null>,
+  trackerRef: RefObject<HTMLElement | null>,
   wrapperRef: RefObject<HTMLElement | null>,
   contentRef: RefObject<HTMLElement | null>
 ) {
   useEffect(() => {
     const wrapper = wrapperRef.current;
     const section = sectionRef.current;
+    const timeline = timelineRef.current;
     const list = listRef.current;
+    const tracker = trackerRef.current;
     const content = contentRef.current;
 
-    if (!wrapper || !section || !list || !content) {
+    if (!wrapper || !section || !timeline || !list || !tracker || !content) {
+      return;
+    }
+
+    const companyEl = tracker.querySelector<HTMLElement>("[data-timeline-company]");
+    const periodEl = tracker.querySelector<HTMLTimeElement>("[data-timeline-period]");
+    const dotCoreEl = tracker.querySelector<HTMLElement>("[data-timeline-dot-core]");
+
+    if (!companyEl || !periodEl || !dotCoreEl) {
       return;
     }
 
     let sectionTop = 0;
     let sectionBottom = 0;
+    let timelineTopAbs = 0;
     let itemsCache: TimelineItemCache[] = [];
+    let lastMetaIndex = -1;
+    let lastColor = "";
+    let isInSection = false;
+    let resizeTimer = 0;
 
     const rebuildCache = () => {
       const listNode = listRef.current;
+      const timelineNode = timelineRef.current;
 
-      if (!listNode) {
+      if (!listNode || !timelineNode) {
         itemsCache = [];
         return;
       }
 
       sectionTop = getSectionOffsetTop(section, content);
       sectionBottom = sectionTop + section.offsetHeight;
-      const listTop = getOffsetWithin(section, listNode);
+      const timelineTop = getOffsetWithin(section, timelineNode);
+      timelineTopAbs = sectionTop + timelineTop;
 
       itemsCache = Array.from(
         listNode.querySelectorAll<HTMLElement>("li[data-timeline-item]")
-      )
-        .map((item) => {
-          const dotEl = item.querySelector<HTMLElement>("[data-timeline-dot]");
-          const metaEl = item.querySelector<HTMLElement>("[data-timeline-meta]");
+      ).map((item) => {
+        const topRel = getOffsetWithin(timelineNode, item);
+        const height = item.offsetHeight;
 
-          if (!dotEl || !metaEl) {
-            return null;
-          }
+        return {
+          element: item,
+          topAbs: timelineTopAbs + topRel,
+          bottomAbs: timelineTopAbs + topRel + height,
+          topRel,
+          height,
+          color: item.dataset.color ?? "#ffffff",
+          company: item.dataset.company ?? "",
+          period: item.dataset.period ?? "",
+          periodRaw: item.dataset.periodRaw ?? "",
+        };
+      });
+    };
 
-          const itemTopInList = item.offsetTop;
-          const itemTopAbs = sectionTop + listTop + itemTopInList;
-          const itemHeight = item.offsetHeight;
+    const updateMeta = (index: number) => {
+      const item = itemsCache[index];
 
-          return {
-            itemEl: item,
-            dotEl,
-            metaEl,
-            itemTopAbs,
-            itemBottomAbs: itemTopAbs + itemHeight,
-            itemHeight,
-            color: item.dataset.color ?? "#ffffff",
-          };
-        })
-        .filter((entry): entry is TimelineItemCache => entry !== null);
+      if (!item) {
+        return;
+      }
+
+      companyEl.textContent = item.company;
+      periodEl.textContent = item.period;
+      periodEl.dateTime = item.periodRaw.replace(/\s*—\s*/, "/");
+    };
+
+    const setActiveItem = (index: number) => {
+      itemsCache.forEach((item, itemIndex) => {
+        const isActive = itemIndex === index;
+
+        if (isActive) {
+          item.element.setAttribute("data-timeline-active", "");
+          item.element.style.setProperty("--item-color", item.color);
+          return;
+        }
+
+        item.element.removeAttribute("data-timeline-active");
+        item.element.style.removeProperty("--item-color");
+      });
     };
 
     const update = () => {
@@ -210,46 +242,78 @@ export function useExperienceTimelineDot(
       const inSection =
         scrollTop + wrapperHeight >= sectionTop && scrollTop <= sectionBottom;
 
+      if (inSection !== isInSection) {
+        isInSection = inSection;
+        tracker.style.willChange = inSection ? "transform" : "";
+        wrapper.toggleAttribute("data-in-experience", inSection);
+      }
+
       if (!inSection) {
         return;
       }
 
       const anchorScroll = scrollTop + wrapperHeight * ANCHOR_RATIO;
-      const { glows, dotOffsets } = computeItemStates(anchorScroll, itemsCache);
+      const state = computeTrackerState(anchorScroll, itemsCache);
 
-      itemsCache.forEach((item, index) => {
-        const glow = glows[index];
-        const offset = dotOffsets[index];
+      if (!state) {
+        return;
+      }
 
-        item.itemEl.style.setProperty("--track-offset", `${offset}px`);
-        item.itemEl.style.setProperty("--track-glow", glow.toFixed(3));
-        item.dotEl.style.setProperty("--project-color", item.color);
-      });
+      tracker.style.transform = `translate3d(0, ${state.trackerY}px, 0)`;
+
+      if (state.color !== lastColor) {
+        dotCoreEl.style.setProperty("--project-color", state.color);
+        lastColor = state.color;
+      }
+
+      if (state.metaIndex !== lastMetaIndex) {
+        updateMeta(state.metaIndex);
+        setActiveItem(state.metaIndex);
+        lastMetaIndex = state.metaIndex;
+      }
     };
 
     const onResize = () => {
-      rebuildCache();
-      update();
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        lastMetaIndex = -1;
+        lastColor = "";
+        rebuildCache();
+        update();
+      }, 120);
     };
 
     rebuildCache();
     update();
 
-    const unsubscribe = subscribeScrollFrame(wrapper, update);
+    const unsubscribeScroll = subscribeScrollFrame(wrapper, update);
     window.addEventListener("resize", onResize, { passive: true });
 
     const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(section);
+    resizeObserver.observe(list);
 
     return () => {
-      unsubscribe();
+      window.clearTimeout(resizeTimer);
+      unsubscribeScroll();
+      wrapper.removeAttribute("data-in-experience");
       resizeObserver.disconnect();
       window.removeEventListener("resize", onResize);
+      tracker.style.transform = "";
+      tracker.style.willChange = "";
+      dotCoreEl.style.removeProperty("--project-color");
 
       itemsCache.forEach((item) => {
-        item.itemEl.style.removeProperty("--track-offset");
-        item.itemEl.style.removeProperty("--track-glow");
+        item.element.removeAttribute("data-timeline-active");
+        item.element.style.removeProperty("--item-color");
       });
     };
-  }, [sectionRef, listRef, wrapperRef, contentRef]);
+  }, [
+    sectionRef,
+    timelineRef,
+    listRef,
+    trackerRef,
+    wrapperRef,
+    contentRef,
+  ]);
 }

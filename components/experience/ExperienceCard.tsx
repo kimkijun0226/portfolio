@@ -13,7 +13,7 @@ export function ExperienceCard({
     <article
       data-reveal
       data-reveal-delay={revealDelay > 0 ? String(revealDelay) : undefined}
-      className="relative overflow-hidden rounded-2xl border border-fg/10 border-l-[3px] bg-bg/50 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-sm transition-[transform,border-color,box-shadow] duration-300 ease-out before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-b before:from-fg/[0.05] before:to-transparent hover:-translate-y-0.5 hover:border-fg/18 hover:shadow-[0_16px_48px_rgba(0,0,0,0.28)]"
+      className="relative overflow-hidden rounded-2xl border border-fg/10 border-l-[3px] bg-bg/90 shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-[transform,border-color,box-shadow] duration-300 ease-out before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-b before:from-fg/[0.05] before:to-transparent hover:-translate-y-0.5 hover:border-fg/18 hover:shadow-[0_16px_48px_rgba(0,0,0,0.28)]"
       style={{ borderLeftColor: project.color }}
     >
       <div className="relative z-10 p-6">
@@ -55,7 +55,7 @@ export function ExperienceCard({
             {project.techStack.map((tech) => (
               <span
                 key={tech}
-                className="rounded-full border border-fg/10 px-3 py-1 text-xs leading-tight text-fg/85 backdrop-blur-md"
+                className="rounded-full border border-fg/10 bg-fg/[0.04] px-3 py-1 text-xs leading-tight text-fg/85"
               >
                 {tech}
               </span>
