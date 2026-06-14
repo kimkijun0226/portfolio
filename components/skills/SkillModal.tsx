@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { HiXMark } from "react-icons/hi2";
 import type { Skill } from "@/data/skills";
 import { skillLevelMeta } from "@/data/skills";
-import styles from "./SkillsSection.module.css";
+import styles from "./SkillModal.module.css";
 
 type SkillModalProps = {
   skill: Skill | null;
@@ -84,7 +84,7 @@ export function SkillModal({ skill, onClose }: SkillModalProps) {
             </span>
             <div className="min-w-0">
               <p className="text-label font-semibold tracking-label text-muted uppercase">
-                Skill Detail
+                스킬 상세
               </p>
               <h3
                 id="skill-modal-title"
@@ -98,7 +98,7 @@ export function SkillModal({ skill, onClose }: SkillModalProps) {
           <div className="mt-6">
             <div className="mb-2 flex items-center justify-between gap-3">
               <span className="text-caption font-medium text-fg/85">
-                역량 수준
+                사용 수준
               </span>
               <span
                 className="rounded-full px-2.5 py-0.5 text-xs font-semibold"

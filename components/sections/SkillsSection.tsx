@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { SkillCategoryCard } from "@/components/SkillCategoryCard";
-import { SkillModal } from "@/components/SkillModal";
+import { SkillCategoryCard } from "@/components/skills/SkillCategoryCard";
+import { SkillModal } from "@/components/skills/SkillModal";
 import { skillCategories, skillsIntro } from "@/data/skills";
 import { ds } from "@/lib/design-system";
-import styles from "./SkillsSection.module.css";
+import styles from "@/components/skills/SkillsSection.module.css";
 
 export function SkillsSection() {
   const [activeSkillId, setActiveSkillId] = useState<string | null>(null);
@@ -40,15 +40,11 @@ export function SkillsSection() {
         className={`${ds.layout.sectionTall} relative overflow-visible`}
       >
         <div
-          className={`mx-auto w-full max-w-[min(76rem,94vw)] px-4 pb-[calc(4rem+50dvh)] sm:px-page ${ds.layout.sectionTitlePad}`}
+          className={`${ds.layout.sectionContent} ${ds.layout.sectionBottomPad} ${ds.layout.sectionTitlePad}`}
         >
           <header data-reveal className="mb-10 sm:mb-12">
-            <h2 className="text-[clamp(2.25rem,4.5vw,3.25rem)] leading-none font-bold tracking-tight text-fg">
-              Skills
-            </h2>
-            <p className="mt-2 max-w-2xl text-body leading-[1.65] text-muted">
-              {skillsIntro}
-            </p>
+            <h2 className={ds.layout.sectionTitle}>Skills</h2>
+            <p className={ds.layout.sectionIntro}>{skillsIntro}</p>
           </header>
 
           <div

@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { HoverTooltip } from "@/components/HoverTooltip";
+import { HoverTooltip } from "@/components/ui/HoverTooltip";
 import { contact } from "@/data/contact";
 
 const EMAIL = contact.email;

@@ -19,6 +19,12 @@ export const ds = {
     sectionShell: "relative h-svh max-h-svh shrink-0 overflow-hidden",
     sectionTall: "relative min-h-dvh shrink-0",
     sectionProjects: "relative shrink-0",
+    sectionContent:
+      "mx-auto w-full max-w-[min(76rem,94vw)] px-4 sm:px-page",
+    sectionBottomPad: "pb-[calc(4rem+50dvh)]",
+    sectionTitle:
+      "text-[clamp(2.25rem,4.5vw,3.25rem)] leading-none font-bold tracking-tight text-fg",
+    sectionIntro: "mt-2 max-w-2xl text-body leading-[1.65] text-muted",
     hero:
       "relative flex h-full items-center justify-center px-4 pb-16 sm:px-page",
     section:

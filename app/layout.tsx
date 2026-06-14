@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
-import { AppToaster } from "@/components/AppToaster";
+import { AppToaster } from "@/components/ui/AppToaster";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({

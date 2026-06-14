@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import { ContactSection } from "@/components/ContactSection";
-import { ExperienceSection } from "@/components/ExperienceSection";
-import { Header } from "@/components/Header";
-import { HeroSection } from "@/components/HeroSection";
-import { ProjectsSection } from "@/components/ProjectsSection";
-import { SkillsSection } from "@/components/SkillsSection";
-import { ThreeBackground } from "@/components/ThreeBackground";
+import { ContactSection } from "@/components/sections/ContactSection";
+import { ExperienceSection } from "@/components/sections/ExperienceSection";
+import { Header } from "@/components/layout/Header";
+import { HeroSection } from "@/components/sections/HeroSection";
+import { ProjectsSection } from "@/components/sections/ProjectsSection";
+import { SkillsSection } from "@/components/sections/SkillsSection";
+import { ThreeBackground } from "@/components/effects/ThreeBackground";
 import type { Project } from "@/data/projects";
 import { projectsIntro } from "@/data/projects";
 import { sectionIds } from "@/data/sections";
@@ -15,7 +15,7 @@ import { useActiveSection } from "@/hooks/useActiveSection";
 import { useGsapScrollReveal } from "@/hooks/useGsapScrollReveal";
 import { useScrollEndClamp } from "@/hooks/useScrollEndClamp";
 import { useScrollRoot } from "@/hooks/useScrollRoot";
-import { getSectionScrollTarget } from "@/lib/scroll-utils";
+import { getSectionScrollTarget } from "@/lib/scroll/utils";
 import { ds } from "@/lib/design-system";
 
 type HomePageProps = {

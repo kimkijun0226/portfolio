@@ -1,13 +1,10 @@
 "use client";
 
 import { type RefObject, useRef } from "react";
-import { ProjectCard } from "@/components/ProjectCard";
+import { ProjectCard } from "@/components/projects/ProjectCard";
 import type { Project } from "@/data/projects";
 import { useProjectsHorizontalScroll } from "@/hooks/useProjectsHorizontalScroll";
 import { ds } from "@/lib/design-system";
-
-const CONTENT_WIDTH =
-  "mx-auto w-full max-w-[min(76rem,94vw)] px-[clamp(1rem,4vw,2.5rem)]";
 
 type ProjectsSectionProps = {
   projects: Project[];
@@ -58,13 +55,9 @@ export function ProjectsSection({
         className="sticky top-0 h-svh w-full overflow-hidden"
       >
         <div className="relative flex h-full min-h-0 w-full flex-col items-center justify-center gap-3 pb-8 sm:gap-4">
-          <header data-reveal className={`${CONTENT_WIDTH} shrink-0`}>
-            <h2 className="text-[clamp(2.25rem,4.5vw,3.25rem)] leading-none font-bold tracking-tight text-fg">
-              Projects
-            </h2>
-            <p className="mt-2 text-body leading-[1.65] text-muted">
-              {projectsIntro}
-            </p>
+          <header data-reveal className={`${ds.layout.sectionContent} shrink-0`}>
+            <h2 className={ds.layout.sectionTitle}>Projects</h2>
+            <p className={ds.layout.sectionIntro}>{projectsIntro}</p>
           </header>
 
           <div
@@ -83,7 +76,7 @@ export function ProjectsSection({
                   className="flex h-auto min-h-0 shrink-0 items-stretch justify-center lg:h-full"
                 >
                   <div
-                    className={`${CONTENT_WIDTH} flex h-auto min-h-0 w-full lg:h-full`}
+                    className={`${ds.layout.sectionContent} flex h-auto min-h-0 w-full lg:h-full`}
                   >
                     <ProjectCard project={project} layout="full" />
                   </div>

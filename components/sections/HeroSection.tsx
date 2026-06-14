@@ -1,6 +1,6 @@
-import { FocusChip } from "@/components/FocusChip";
-import { ScrollIndicator } from "@/components/ScrollIndicator";
-import { TypingText } from "@/components/TypingText";
+import { FocusChip } from "@/components/ui/FocusChip";
+import { ScrollIndicator } from "@/components/ui/ScrollIndicator";
+import { TypingText } from "@/components/ui/TypingText";
 import { focusItems } from "@/data/focus";
 import { profile } from "@/data/profile";
 import {

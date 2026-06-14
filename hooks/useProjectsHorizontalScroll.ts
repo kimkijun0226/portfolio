@@ -7,8 +7,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { subscribeScrollFrame } from "@/lib/scroll-frame";
-import { getScrollPaddingTop, getSectionOffsetTop } from "@/lib/scroll-utils";
+import { subscribeScrollFrame } from "@/lib/scroll/frame";
+import { getScrollPaddingTop, getSectionOffsetTop } from "@/lib/scroll/utils";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));

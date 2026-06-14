@@ -1,8 +1,8 @@
 "use client";
 
 import { type RefObject, useEffect, useState } from "react";
-import { subscribeScrollFrame } from "@/lib/scroll-frame";
-import { getSectionOffsetTop, SNAP_THRESHOLD_RATIO } from "@/lib/scroll-utils";
+import { subscribeScrollFrame } from "@/lib/scroll/frame";
+import { getSectionOffsetTop, SNAP_THRESHOLD_RATIO } from "@/lib/scroll/utils";
 
 export function useActiveSection(
   sectionIds: string[],

@@ -3,13 +3,19 @@ type ScrollFrameListener = () => void;
 const listeners = new Set<ScrollFrameListener>();
 let rafId = 0;
 let attachedWrapper: HTMLElement | null = null;
-let paused = false;
 let scrollIdleTimer = 0;
+let isScrolling = false;
+
+export function getScrollFrameIsScrolling() {
+  return isScrolling;
+}
 
 function setScrollingState(scrolling: boolean) {
   if (!attachedWrapper) {
     return;
   }
+
+  isScrolling = scrolling;
 
   if (scrolling) {
     attachedWrapper.setAttribute("data-scrolling", "");
@@ -21,19 +27,10 @@ function setScrollingState(scrolling: boolean) {
 
 function flush() {
   rafId = 0;
-
-  if (paused) {
-    return;
-  }
-
   listeners.forEach((listener) => listener());
 }
 
 function onScroll() {
-  if (paused) {
-    return;
-  }
-
   setScrollingState(true);
   window.clearTimeout(scrollIdleTimer);
   scrollIdleTimer = window.setTimeout(() => {
@@ -45,19 +42,6 @@ function onScroll() {
   }
 
   rafId = window.requestAnimationFrame(flush);
-}
-
-export function setScrollFramePaused(value: boolean) {
-  paused = value;
-
-  if (value) {
-    window.cancelAnimationFrame(rafId);
-    rafId = 0;
-    setScrollingState(false);
-    return;
-  }
-
-  flush();
 }
 
 function attach(wrapper: HTMLElement) {
@@ -80,6 +64,7 @@ function detach(wrapper: HTMLElement) {
   window.cancelAnimationFrame(rafId);
   rafId = 0;
   window.clearTimeout(scrollIdleTimer);
+  isScrolling = false;
   setScrollingState(false);
 }
 

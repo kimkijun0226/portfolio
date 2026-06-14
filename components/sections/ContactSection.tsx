@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { FaGithub } from "react-icons/fa";
 import { HiArrowRight, HiEnvelope } from "react-icons/hi2";
 import { contact } from "@/data/contact";
+import { ds } from "@/lib/design-system";
 
 type ContactSectionProps = {
   onNavigate?: (sectionId: string) => void;
@@ -25,8 +26,8 @@ export function ContactSection({ onNavigate }: ContactSectionProps) {
       data-snap-section
       className="relative flex min-h-svh shrink-0 flex-col"
     >
-      <div className="flex flex-1 flex-col justify-center px-4 py-16 sm:px-page sm:py-20">
-        <div className="mx-auto w-full max-w-[min(76rem,94vw)]">
+      <div className="flex flex-1 flex-col justify-center py-16 sm:py-20">
+        <div className={ds.layout.sectionContent}>
           <p
             data-reveal
             className="text-body leading-relaxed text-muted"
@@ -54,12 +55,10 @@ export function ContactSection({ onNavigate }: ContactSectionProps) {
             >
               {contact.inquiry}
             </p>
-            <p
-              data-reveal-item
-              className="text-body leading-[1.75] text-muted"
-            >
-              {contact.coffeeChat}
-            </p>
+            <div data-reveal-item className="text-body leading-[1.75] text-muted">
+              <p>{contact.coffeeChat}</p>
+              <p className="mt-4">{contact.closing}</p>
+            </div>
           </div>
 
           <div
@@ -96,9 +95,9 @@ export function ContactSection({ onNavigate }: ContactSectionProps) {
       <footer
         data-reveal
         data-reveal-delay="0.1"
-        className="border-t border-fg/10 px-4 py-12 sm:px-page sm:py-14"
+        className="border-t border-fg/10 py-12 sm:py-14"
       >
-        <div className="mx-auto grid w-full max-w-[min(76rem,94vw)] grid-cols-1 gap-10 md:grid-cols-3 md:gap-8">
+        <div className={`${ds.layout.sectionContent} grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-8`}>
           <div>
             <p className="text-[1.125rem] font-semibold text-fg">
               {contact.footer.name}
