@@ -2,6 +2,7 @@
 
 import { type RefObject, useLayoutEffect } from "react";
 import { gsap, registerGsapPlugins, ScrollTrigger } from "@/lib/gsap";
+import { getScrollFrameIsScrolling } from "@/lib/scroll/frame";
 
 const REVEAL_SELECTOR = "[data-reveal]";
 const IMMEDIATE_SELECTOR = "[data-reveal-immediate]";
@@ -12,6 +13,12 @@ const REVEAL_FROM = {
   y: 56,
   opacity: 0,
   scale: 0.9,
+} as const;
+
+const REVEAL_TO = {
+  y: 0,
+  opacity: 1,
+  scale: 1,
 } as const;
 
 function createRevealTween(
@@ -33,7 +40,7 @@ function createRevealTween(
   } = options;
 
   const tweenVars: gsap.TweenVars = {
-    ...REVEAL_FROM,
+    ...REVEAL_TO,
     duration: 0.9,
     delay,
     stagger: stagger > 0 ? stagger : undefined,
@@ -49,7 +56,7 @@ function createRevealTween(
     };
   }
 
-  return gsap.from(targets, tweenVars);
+  return gsap.fromTo(targets, REVEAL_FROM, tweenVars);
 }
 
 export function useGsapScrollReveal(
@@ -150,8 +157,19 @@ export function useGsapScrollReveal(
     });
 
     let scrollTriggerRafId = 0;
+    let scrollTriggerSkip = 0;
 
     const onScroll = () => {
+      if (getScrollFrameIsScrolling()) {
+        scrollTriggerSkip += 1;
+
+        if (scrollTriggerSkip % 4 !== 0) {
+          return;
+        }
+      } else {
+        scrollTriggerSkip = 0;
+      }
+
       if (scrollTriggerRafId !== 0) {
         return;
       }

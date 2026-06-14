@@ -105,8 +105,24 @@ html[data-theme="light"] {
   scroll-snap-stop: always;
 }
 
+[data-timeline-item][data-timeline-active] > article {
+  border-color: color-mix(in srgb, var(--fg) 16%, transparent);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    0 0 0 1px color-mix(in srgb, var(--item-color) 18%, transparent);
+}
+
 #contact {
   scroll-snap-align: end;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal-immediate],
+  [data-reveal],
+  [data-reveal-stagger] [data-reveal-item] {
+    opacity: 0;
+    transform: translate3d(0, 56px, 0) scale(0.9);
+  }
 }
 
 @keyframes caret-blink {
