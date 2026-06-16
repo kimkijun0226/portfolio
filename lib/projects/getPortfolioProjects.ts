@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { fallbackProjects, projectsIntro, type Project } from "@/data/projects";
 import {
   extractBlockNotePlainText,
@@ -6,6 +7,7 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const PORTFOLIO_TOPIC_CATEGORY = "portfolio";
+export const PORTFOLIO_REVALIDATE_SECONDS = 60;
 
 type PortfolioTopicRow = {
   id: number;
@@ -45,7 +47,7 @@ function mapTopicToProject(topic: PortfolioTopicRow): Project | null {
   };
 }
 
-export async function getPortfolioProjects(): Promise<Project[]> {
+async function fetchPortfolioProjects(): Promise<Project[]> {
   try {
     const supabase = createSupabaseServerClient();
 
@@ -76,6 +78,16 @@ export async function getPortfolioProjects(): Promise<Project[]> {
     console.error("[getPortfolioProjects]", error);
     return fallbackProjects;
   }
+}
+
+const getCachedPortfolioProjects = unstable_cache(
+  fetchPortfolioProjects,
+  ["portfolio-projects"],
+  { revalidate: PORTFOLIO_REVALIDATE_SECONDS, tags: ["portfolio-projects"] }
+);
+
+export async function getPortfolioProjects(): Promise<Project[]> {
+  return getCachedPortfolioProjects();
 }
 
 export { projectsIntro };

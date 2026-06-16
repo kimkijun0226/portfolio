@@ -1,13 +1,13 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback } from "react";
 import { ContactSection } from "@/components/sections/ContactSection";
 import { ExperienceSection } from "@/components/sections/ExperienceSection";
 import { Header } from "@/components/layout/Header";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { ProjectsSection } from "@/components/sections/ProjectsSection";
-import { SkillsSection } from "@/components/sections/SkillsSection";
-import { ThreeBackground } from "@/components/effects/ThreeBackground";
+import { ThreeBackgroundLazy } from "@/components/effects/ThreeBackgroundLazy";
 import type { Project } from "@/data/projects";
 import { projectsIntro } from "@/data/projects";
 import { sectionIds } from "@/data/sections";
@@ -17,6 +17,14 @@ import { useScrollEndClamp } from "@/hooks/useScrollEndClamp";
 import { useScrollRoot } from "@/hooks/useScrollRoot";
 import { getSectionScrollTarget } from "@/lib/scroll/utils";
 import { ds } from "@/lib/design-system";
+
+const SkillsSection = dynamic(
+  () =>
+    import("@/components/sections/SkillsSection").then(
+      (module) => module.SkillsSection
+    ),
+  { ssr: false }
+);
 
 type HomePageProps = {
   projects: Project[];
@@ -53,7 +61,7 @@ export function HomePage({ projects }: HomePageProps) {
 
   return (
     <>
-      <ThreeBackground />
+      <ThreeBackgroundLazy />
       <Header activeId={activeId} onNavigate={scrollToSection} />
 
       <main ref={wrapperRef} data-scroll-root className={ds.layout.page}>

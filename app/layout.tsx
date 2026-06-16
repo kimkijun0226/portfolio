@@ -7,7 +7,12 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600"],
   variable: "--font-space-grotesk",
+  display: "swap",
 });
+
+const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
+  : null;
 
 export const metadata: Metadata = {
   title: "김기준 · 프론트엔드 개발자",
@@ -26,6 +31,11 @@ export default function RootLayout({
       data-theme="dark"
       className={`h-full ${spaceGrotesk.variable}`}
     >
+      <head>
+        {supabaseOrigin ? (
+          <link rel="preconnect" href={supabaseOrigin} crossOrigin="anonymous" />
+        ) : null}
+      </head>
       <body className="h-full overflow-hidden overscroll-none bg-bg font-sans text-fg antialiased">
         {children}
         <AppToaster />

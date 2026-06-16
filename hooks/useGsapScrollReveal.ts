@@ -1,7 +1,6 @@
 "use client";
 
 import { type RefObject, useLayoutEffect } from "react";
-import { gsap, registerGsapPlugins, ScrollTrigger } from "@/lib/gsap";
 import { getScrollFrameIsScrolling } from "@/lib/scroll/frame";
 
 const REVEAL_SELECTOR = "[data-reveal]";
@@ -21,8 +20,11 @@ const REVEAL_TO = {
   scale: 1,
 } as const;
 
+type GsapModule = typeof import("@/lib/gsap");
+
 function createRevealTween(
-  targets: gsap.TweenTarget,
+  gsap: GsapModule["gsap"],
+  targets: Parameters<GsapModule["gsap"]["fromTo"]>[0],
   options: {
     scroller?: HTMLElement;
     trigger?: Element;
@@ -39,7 +41,21 @@ function createRevealTween(
     start = "top 86%",
   } = options;
 
-  const tweenVars: gsap.TweenVars = {
+  const tweenVars: {
+    y: number;
+    opacity: number;
+    scale: number;
+    duration: number;
+    delay: number;
+    stagger?: number;
+    ease: string;
+    scrollTrigger?: {
+      trigger: Element;
+      scroller: HTMLElement;
+      start: string;
+      toggleActions: string;
+    };
+  } = {
     ...REVEAL_TO,
     duration: 0.9,
     delay,
@@ -69,133 +85,130 @@ export function useGsapScrollReveal(
       return;
     }
 
-    registerGsapPlugins();
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if (prefersReducedMotion) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
     }
 
-    const tweens: gsap.core.Tween[] = [];
-    const immediateElements =
-      scroller.querySelectorAll<HTMLElement>(IMMEDIATE_SELECTOR);
+    let cancelled = false;
+    let cleanupImmediate: (() => void) | undefined;
+    let cleanupScroll: (() => void) | undefined;
 
-    immediateElements.forEach((element) => {
-      const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
-
-      tweens.push(
-        createRevealTween(element, { delay })
-      );
-    });
-
-    return () => {
-      tweens.forEach((tween) => tween.kill());
-    };
-  }, [scrollRootRef]);
-
-  useLayoutEffect(() => {
-    const scroller = scrollRootRef.current;
-
-    if (!scroller) {
-      return;
-    }
-
-    registerGsapPlugins();
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if (prefersReducedMotion) {
-      return;
-    }
-
-    const triggers: ScrollTrigger[] = [];
-    const elements = scroller.querySelectorAll<HTMLElement>(REVEAL_SELECTOR);
-
-    elements.forEach((element) => {
-      const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
-
-      const animation = createRevealTween(element, {
-        scroller,
-        trigger: element,
-        delay,
-      });
-
-      const trigger = animation.scrollTrigger;
-
-      if (trigger) {
-        triggers.push(trigger);
-      }
-    });
-
-    const staggerGroups =
-      scroller.querySelectorAll<HTMLElement>(STAGGER_SELECTOR);
-
-    staggerGroups.forEach((group) => {
-      const items = group.querySelectorAll<HTMLElement>(STAGGER_ITEM_SELECTOR);
-
-      if (items.length === 0) {
-        return;
-      }
-
-      const animation = createRevealTween(items, {
-        scroller,
-        trigger: group,
-        start: "top 84%",
-        stagger: 0.12,
-      });
-
-      const trigger = animation.scrollTrigger;
-
-      if (trigger) {
-        triggers.push(trigger);
-      }
-    });
-
-    let scrollTriggerRafId = 0;
-    let scrollTriggerSkip = 0;
-
-    const onScroll = () => {
-      if (getScrollFrameIsScrolling()) {
-        scrollTriggerSkip += 1;
-
-        if (scrollTriggerSkip % 4 !== 0) {
+    void import("@/lib/gsap").then(
+      ({ gsap, registerGsapPlugins, ScrollTrigger }) => {
+        if (cancelled) {
           return;
         }
-      } else {
-        scrollTriggerSkip = 0;
+
+        registerGsapPlugins();
+
+        const tweens: ReturnType<GsapModule["gsap"]["fromTo"]>[] = [];
+        const immediateElements =
+          scroller.querySelectorAll<HTMLElement>(IMMEDIATE_SELECTOR);
+
+        immediateElements.forEach((element) => {
+          const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
+
+          tweens.push(createRevealTween(gsap, element, { delay }));
+        });
+
+        cleanupImmediate = () => {
+          tweens.forEach((tween) => tween.kill());
+        };
+
+        const triggers: NonNullable<
+          ReturnType<GsapModule["gsap"]["fromTo"]>["scrollTrigger"]
+        >[] = [];
+        const elements = scroller.querySelectorAll<HTMLElement>(REVEAL_SELECTOR);
+
+        elements.forEach((element) => {
+          const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
+
+          const animation = createRevealTween(gsap, element, {
+            scroller,
+            trigger: element,
+            delay,
+          });
+
+          const trigger = animation.scrollTrigger;
+
+          if (trigger) {
+            triggers.push(trigger);
+          }
+        });
+
+        const staggerGroups =
+          scroller.querySelectorAll<HTMLElement>(STAGGER_SELECTOR);
+
+        staggerGroups.forEach((group) => {
+          const items =
+            group.querySelectorAll<HTMLElement>(STAGGER_ITEM_SELECTOR);
+
+          if (items.length === 0) {
+            return;
+          }
+
+          const animation = createRevealTween(gsap, items, {
+            scroller,
+            trigger: group,
+            start: "top 84%",
+            stagger: 0.12,
+          });
+
+          const trigger = animation.scrollTrigger;
+
+          if (trigger) {
+            triggers.push(trigger);
+          }
+        });
+
+        let scrollTriggerRafId = 0;
+        let scrollTriggerSkip = 0;
+
+        const onScroll = () => {
+          if (getScrollFrameIsScrolling()) {
+            scrollTriggerSkip += 1;
+
+            if (scrollTriggerSkip % 4 !== 0) {
+              return;
+            }
+          } else {
+            scrollTriggerSkip = 0;
+          }
+
+          if (scrollTriggerRafId !== 0) {
+            return;
+          }
+
+          scrollTriggerRafId = window.requestAnimationFrame(() => {
+            scrollTriggerRafId = 0;
+            ScrollTrigger.update();
+          });
+        };
+
+        scroller.addEventListener("scroll", onScroll, { passive: true });
+
+        const refresh = () => {
+          ScrollTrigger.refresh();
+        };
+
+        window.addEventListener("resize", refresh);
+        refresh();
+
+        cleanupScroll = () => {
+          scroller.removeEventListener("scroll", onScroll);
+          window.removeEventListener("resize", refresh);
+          if (scrollTriggerRafId !== 0) {
+            window.cancelAnimationFrame(scrollTriggerRafId);
+          }
+          triggers.forEach((trigger) => trigger.kill());
+        };
       }
-
-      if (scrollTriggerRafId !== 0) {
-        return;
-      }
-
-      scrollTriggerRafId = window.requestAnimationFrame(() => {
-        scrollTriggerRafId = 0;
-        ScrollTrigger.update();
-      });
-    };
-
-    scroller.addEventListener("scroll", onScroll, { passive: true });
-
-    const refresh = () => {
-      ScrollTrigger.refresh();
-    };
-
-    window.addEventListener("resize", refresh);
-    refresh();
+    );
 
     return () => {
-      scroller.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", refresh);
-      if (scrollTriggerRafId !== 0) {
-        window.cancelAnimationFrame(scrollTriggerRafId);
-      }
-      triggers.forEach((trigger) => trigger.kill());
+      cancelled = true;
+      cleanupImmediate?.();
+      cleanupScroll?.();
     };
   }, [scrollRootRef]);
 }

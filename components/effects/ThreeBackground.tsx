@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import * as THREE from "three";
 import { getScrollFrameIsScrolling } from "@/lib/scroll/frame";
 
 const RIBBON_VERTEX_SHADER = `
@@ -68,11 +67,11 @@ const RIBBON_FRAGMENT_SHADER = `
 type ThemeMode = "dark" | "light";
 
 function getPixelRatio() {
-  return Math.min(window.devicePixelRatio || 1, 1.5);
+  return Math.min(window.devicePixelRatio || 1, 1.25);
 }
 
 function getParticleCount() {
-  return window.matchMedia("(max-width: 768px)").matches ? 1200 : 2200;
+  return window.matchMedia("(max-width: 768px)").matches ? 900 : 1600;
 }
 
 function getThemeMode(): ThemeMode {
@@ -93,184 +92,202 @@ export function ThreeBackground() {
       return;
     }
 
+    let cancelled = false;
     let animationId = 0;
-    let rot = 0;
+    let disposeScene: (() => void) | undefined;
 
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const init = async () => {
+      const THREE = await import("three");
 
-    const particleScene = new THREE.Scene();
-    const particleFog = new THREE.Fog(0x000000, 50, 2000);
-    particleScene.fog = particleFog;
-
-    const particleCamera = new THREE.PerspectiveCamera(70, width / height);
-    particleCamera.lookAt(0, 0, 0);
-
-    const particleRenderer = new THREE.WebGLRenderer({
-      canvas,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
-    particleRenderer.setPixelRatio(getPixelRatio());
-    particleRenderer.setSize(width, height);
-
-    const vertices: number[] = [];
-    const SIZE = 3000;
-    const LENGTH = getParticleCount();
-
-    for (let i = 0; i < LENGTH; i += 1) {
-      vertices.push(
-        SIZE * (Math.random() - 0.5),
-        SIZE * (Math.random() - 0.5),
-        SIZE * (Math.random() - 0.5)
-      );
-    }
-
-    const particleGeometry = new THREE.BufferGeometry();
-    particleGeometry.setAttribute(
-      "position",
-      new THREE.Float32BufferAttribute(vertices, 3)
-    );
-
-    const particleMaterial = new THREE.PointsMaterial({ color: 0xffffff });
-    const particleMesh = new THREE.Points(particleGeometry, particleMaterial);
-    particleScene.add(particleMesh);
-
-    const ribbonScene = new THREE.Scene();
-    const ribbonCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 10000);
-    ribbonCamera.position.z = 2;
-
-    const ribbonRenderer = new THREE.WebGLRenderer({
-      antialias: false,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
-    ribbonContainer.appendChild(ribbonRenderer.domElement);
-
-    const ribbonMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        time: { value: 1.0 },
-        ribbonColor: { value: new THREE.Color(1, 1, 1) },
-      },
-      vertexShader: RIBBON_VERTEX_SHADER,
-      fragmentShader: RIBBON_FRAGMENT_SHADER,
-      side: THREE.DoubleSide,
-      transparent: true,
-      depthTest: false,
-    });
-
-    const ribbon = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 1, 64, 64),
-      ribbonMaterial
-    );
-    ribbonScene.add(ribbon);
-
-    const applyTheme = (mode: ThemeMode) => {
-      if (mode === "light") {
-        particleMaterial.color.set(0x475569);
-        particleFog.color.set(0xf8fafc);
-        ribbonMaterial.uniforms.ribbonColor.value.set(0.29, 0.34, 0.42);
-      } else {
-        particleMaterial.color.set(0xffffff);
-        particleFog.color.set(0x000000);
-        ribbonMaterial.uniforms.ribbonColor.value.set(1, 1, 1);
-      }
-    };
-
-    const resizeParticles = () => {
-      const nextWidth = window.innerWidth;
-      const nextHeight = window.innerHeight;
-      particleCamera.aspect = nextWidth / nextHeight;
-      particleCamera.updateProjectionMatrix();
-      particleRenderer.setPixelRatio(getPixelRatio());
-      particleRenderer.setSize(nextWidth, nextHeight);
-    };
-
-    const resizeRibbon = () => {
-      const { offsetWidth, offsetHeight } = ribbonContainer;
-      ribbonRenderer.setSize(offsetWidth, offsetHeight);
-      ribbonRenderer.setPixelRatio(getPixelRatio());
-      ribbonCamera.aspect = offsetWidth / offsetHeight;
-      ribbonCamera.updateProjectionMatrix();
-      ribbon.scale.set(ribbonCamera.aspect * 1.55, 0.75, 1);
-    };
-
-    const handleResize = () => {
-      resizeParticles();
-      resizeRibbon();
-    };
-
-    const renderLoop = () => {
-      if (document.hidden) {
-        animationId = window.requestAnimationFrame(renderLoop);
+      if (cancelled) {
         return;
       }
 
-      const isScrolling = getScrollFrameIsScrolling();
+      let rot = 0;
 
-      if (!isScrolling) {
-        rot += 0.1;
-        const radian = (rot * Math.PI) / 180;
-        particleCamera.position.x = 1000 * Math.sin(radian);
-        particleCamera.position.z = 1000 * Math.cos(radian);
-        particleMesh.rotation.y += 0.001;
-        particleRenderer.render(particleScene, particleCamera);
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      const particleScene = new THREE.Scene();
+      const particleFog = new THREE.Fog(0x000000, 50, 2000);
+      particleScene.fog = particleFog;
+
+      const particleCamera = new THREE.PerspectiveCamera(70, width / height);
+      particleCamera.lookAt(0, 0, 0);
+
+      const particleRenderer = new THREE.WebGLRenderer({
+        canvas,
+        alpha: true,
+        powerPreference: "high-performance",
+      });
+      particleRenderer.setPixelRatio(getPixelRatio());
+      particleRenderer.setSize(width, height);
+
+      const vertices: number[] = [];
+      const SIZE = 3000;
+      const LENGTH = getParticleCount();
+
+      for (let i = 0; i < LENGTH; i += 1) {
+        vertices.push(
+          SIZE * (Math.random() - 0.5),
+          SIZE * (Math.random() - 0.5),
+          SIZE * (Math.random() - 0.5)
+        );
       }
 
-      if (!isScrolling) {
-        ribbonMaterial.uniforms.time.value += 0.01;
-        ribbonRenderer.render(ribbonScene, ribbonCamera);
-      }
+      const particleGeometry = new THREE.BufferGeometry();
+      particleGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(vertices, 3)
+      );
 
-      animationId = window.requestAnimationFrame(renderLoop);
-    };
+      const particleMaterial = new THREE.PointsMaterial({ color: 0xffffff });
+      const particleMesh = new THREE.Points(particleGeometry, particleMaterial);
+      particleScene.add(particleMesh);
 
-    const onVisibilityChange = () => {
-      if (!document.hidden) {
+      const ribbonScene = new THREE.Scene();
+      const ribbonCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 10000);
+      ribbonCamera.position.z = 2;
+
+      const ribbonRenderer = new THREE.WebGLRenderer({
+        antialias: false,
+        alpha: true,
+        powerPreference: "high-performance",
+      });
+      ribbonContainer.appendChild(ribbonRenderer.domElement);
+
+      const ribbonMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          time: { value: 1.0 },
+          ribbonColor: { value: new THREE.Color(1, 1, 1) },
+        },
+        vertexShader: RIBBON_VERTEX_SHADER,
+        fragmentShader: RIBBON_FRAGMENT_SHADER,
+        side: THREE.DoubleSide,
+        transparent: true,
+        depthTest: false,
+      });
+
+      const ribbon = new THREE.Mesh(
+        new THREE.PlaneGeometry(1, 1, 64, 64),
+        ribbonMaterial
+      );
+      ribbonScene.add(ribbon);
+
+      const applyTheme = (mode: ThemeMode) => {
+        if (mode === "light") {
+          particleMaterial.color.set(0x475569);
+          particleFog.color.set(0xf8fafc);
+          ribbonMaterial.uniforms.ribbonColor.value.set(0.29, 0.34, 0.42);
+        } else {
+          particleMaterial.color.set(0xffffff);
+          particleFog.color.set(0x000000);
+          ribbonMaterial.uniforms.ribbonColor.value.set(1, 1, 1);
+        }
+      };
+
+      const resizeParticles = () => {
+        const nextWidth = window.innerWidth;
+        const nextHeight = window.innerHeight;
+        particleCamera.aspect = nextWidth / nextHeight;
+        particleCamera.updateProjectionMatrix();
+        particleRenderer.setPixelRatio(getPixelRatio());
+        particleRenderer.setSize(nextWidth, nextHeight);
+      };
+
+      const resizeRibbon = () => {
+        const { offsetWidth, offsetHeight } = ribbonContainer;
+        ribbonRenderer.setSize(offsetWidth, offsetHeight);
+        ribbonRenderer.setPixelRatio(getPixelRatio());
+        ribbonCamera.aspect = offsetWidth / offsetHeight;
+        ribbonCamera.updateProjectionMatrix();
+        ribbon.scale.set(ribbonCamera.aspect * 1.55, 0.75, 1);
+      };
+
+      const handleResize = () => {
         resizeParticles();
         resizeRibbon();
-      }
+      };
+
+      const renderLoop = () => {
+        if (document.hidden) {
+          animationId = window.requestAnimationFrame(renderLoop);
+          return;
+        }
+
+        const isScrolling = getScrollFrameIsScrolling();
+
+        if (!isScrolling) {
+          rot += 0.1;
+          const radian = (rot * Math.PI) / 180;
+          particleCamera.position.x = 1000 * Math.sin(radian);
+          particleCamera.position.z = 1000 * Math.cos(radian);
+          particleMesh.rotation.y += 0.001;
+          particleRenderer.render(particleScene, particleCamera);
+        }
+
+        if (!isScrolling) {
+          ribbonMaterial.uniforms.time.value += 0.01;
+          ribbonRenderer.render(ribbonScene, ribbonCamera);
+        }
+
+        animationId = window.requestAnimationFrame(renderLoop);
+      };
+
+      const onVisibilityChange = () => {
+        if (!document.hidden) {
+          resizeParticles();
+          resizeRibbon();
+        }
+      };
+
+      const themeObserver = new MutationObserver(() => {
+        applyTheme(getThemeMode());
+      });
+
+      applyTheme(getThemeMode());
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+      });
+
+      canvasWrap.style.transform = "scale(0)";
+      canvasWrap.style.transition = "transform 0.5s ease-out";
+      ribbonContainer.style.opacity = "0";
+      ribbonContainer.style.transition = "opacity 5s ease 0.7s";
+
+      requestAnimationFrame(() => {
+        canvasWrap.style.transform = "scale(1)";
+        ribbonContainer.style.opacity = "0.3";
+      });
+
+      resizeRibbon();
+      renderLoop();
+      window.addEventListener("resize", handleResize);
+      document.addEventListener("visibilitychange", onVisibilityChange);
+
+      disposeScene = () => {
+        themeObserver.disconnect();
+        window.removeEventListener("resize", handleResize);
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+        window.cancelAnimationFrame(animationId);
+        particleGeometry.dispose();
+        particleMaterial.dispose();
+        particleRenderer.dispose();
+        ribbon.geometry.dispose();
+        ribbon.material.dispose();
+        ribbonRenderer.dispose();
+        if (ribbonRenderer.domElement.parentNode === ribbonContainer) {
+          ribbonContainer.removeChild(ribbonRenderer.domElement);
+        }
+      };
     };
 
-    const themeObserver = new MutationObserver(() => {
-      applyTheme(getThemeMode());
-    });
-
-    applyTheme(getThemeMode());
-    themeObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-
-    canvasWrap.style.transform = "scale(0)";
-    canvasWrap.style.transition = "transform 0.5s ease-out";
-    ribbonContainer.style.opacity = "0";
-    ribbonContainer.style.transition = "opacity 5s ease 0.7s";
-
-    requestAnimationFrame(() => {
-      canvasWrap.style.transform = "scale(1)";
-      ribbonContainer.style.opacity = "0.3";
-    });
-
-    resizeRibbon();
-    renderLoop();
-    window.addEventListener("resize", handleResize);
-    document.addEventListener("visibilitychange", onVisibilityChange);
+    void init();
 
     return () => {
-      themeObserver.disconnect();
-      window.removeEventListener("resize", handleResize);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.cancelAnimationFrame(animationId);
-      particleGeometry.dispose();
-      particleMaterial.dispose();
-      particleRenderer.dispose();
-      ribbon.geometry.dispose();
-      ribbon.material.dispose();
-      ribbonRenderer.dispose();
-      if (ribbonRenderer.domElement.parentNode === ribbonContainer) {
-        ribbonContainer.removeChild(ribbonRenderer.domElement);
-      }
+      cancelled = true;
+      disposeScene?.();
     };
   }, []);
 
