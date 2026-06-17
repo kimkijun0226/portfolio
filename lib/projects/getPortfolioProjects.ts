@@ -1,6 +1,5 @@
 import { unstable_cache } from "next/cache";
 import { fallbackProjects, projectsIntro, type Project } from "@/data/projects";
-import { portfolioSiteDevSections } from "@/data/portfolioSiteDev";
 import {
   extractBlockNotePlainText,
   extractBlockNotePortfolioLinks,
@@ -50,17 +49,6 @@ function mapTopicToProject(topic: PortfolioTopicRow): Project | null {
   };
 }
 
-function attachPortfolioDevNotes(projects: Project[]): Project[] {
-  // 이 포트폴리오 사이트(topic 128) 카드에만 '개발 정리' 섹션 데이터를 붙입니다.
-  return projects.map((project) => {
-    if (project.id === "topic-128" || project.topicId === 128) {
-      return { ...project, devSections: portfolioSiteDevSections };
-    }
-
-    return project;
-  });
-}
-
 async function fetchPortfolioProjects(): Promise<Project[]> {
   try {
     const supabase = createSupabaseServerClient();
@@ -80,19 +68,17 @@ async function fetchPortfolioProjects(): Promise<Project[]> {
 
     if (error) {
       console.error("[getPortfolioProjects]", error.message);
-      return attachPortfolioDevNotes(fallbackProjects);
+      return fallbackProjects;
     }
 
     const projects = (data ?? [])
       .map((row) => mapTopicToProject(row as PortfolioTopicRow))
       .filter((project): project is Project => project !== null);
 
-    return attachPortfolioDevNotes(
-      projects.length > 0 ? projects : fallbackProjects
-    );
+    return projects.length > 0 ? projects : fallbackProjects;
   } catch (error) {
     console.error("[getPortfolioProjects]", error);
-    return attachPortfolioDevNotes(fallbackProjects);
+    return fallbackProjects;
   }
 }
 
