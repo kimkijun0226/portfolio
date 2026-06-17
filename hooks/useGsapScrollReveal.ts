@@ -112,64 +112,104 @@ export function useGsapScrollReveal(
         registerGsapPlugins();
 
         const tweens: ReturnType<GsapModule["gsap"]["fromTo"]>[] = [];
-        const immediateElements =
-          scroller.querySelectorAll<HTMLElement>(IMMEDIATE_SELECTOR);
+        const triggers: NonNullable<
+          ReturnType<GsapModule["gsap"]["fromTo"]>["scrollTrigger"]
+        >[] = [];
 
-        immediateElements.forEach((element) => {
-          const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
+        // Skills 같은 섹션을 코드 스플릿으로 늦게 로드하면 DOM이 "나중에" 추가됩니다.
+        // globals.css가 reveal 대상을 opacity:0으로 숨기기 때문에,
+        // 이 훅이 동적으로 추가된 요소까지 스캔해 애니메이션을 붙여야 화면이 정상 노출됩니다.
+        const seenImmediate = new WeakSet<HTMLElement>();
+        const seenReveal = new WeakSet<HTMLElement>();
+        const seenStagger = new WeakSet<HTMLElement>();
 
-          tweens.push(createRevealTween(gsap, element, { delay }));
-        });
+        const scan = () => {
+          const immediateElements =
+            scroller.querySelectorAll<HTMLElement>(IMMEDIATE_SELECTOR);
+
+          immediateElements.forEach((element) => {
+            if (seenImmediate.has(element)) {
+              return;
+            }
+            seenImmediate.add(element);
+
+            const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
+            tweens.push(createRevealTween(gsap, element, { delay }));
+          });
+
+          const elements =
+            scroller.querySelectorAll<HTMLElement>(REVEAL_SELECTOR);
+
+          elements.forEach((element) => {
+            if (seenReveal.has(element)) {
+              return;
+            }
+            seenReveal.add(element);
+
+            const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
+            const animation = createRevealTween(gsap, element, {
+              scroller,
+              trigger: element,
+              delay,
+            });
+
+            const trigger = animation.scrollTrigger;
+            if (trigger) {
+              triggers.push(trigger);
+            }
+          });
+
+          const staggerGroups =
+            scroller.querySelectorAll<HTMLElement>(STAGGER_SELECTOR);
+
+          staggerGroups.forEach((group) => {
+            if (seenStagger.has(group)) {
+              return;
+            }
+
+            const items =
+              group.querySelectorAll<HTMLElement>(STAGGER_ITEM_SELECTOR);
+
+            if (items.length === 0) {
+              return;
+            }
+
+            seenStagger.add(group);
+            const animation = createRevealTween(gsap, items, {
+              scroller,
+              trigger: group,
+              start: "top 84%",
+              stagger: 0.12,
+            });
+
+            const trigger = animation.scrollTrigger;
+            if (trigger) {
+              triggers.push(trigger);
+            }
+          });
+
+          ScrollTrigger.refresh();
+        };
+
+        scan();
 
         cleanupImmediate = () => {
           tweens.forEach((tween) => tween.kill());
         };
 
-        const triggers: NonNullable<
-          ReturnType<GsapModule["gsap"]["fromTo"]>["scrollTrigger"]
-        >[] = [];
-        const elements = scroller.querySelectorAll<HTMLElement>(REVEAL_SELECTOR);
-
-        elements.forEach((element) => {
-          const delay = Number.parseFloat(element.dataset.revealDelay ?? "0");
-
-          const animation = createRevealTween(gsap, element, {
-            scroller,
-            trigger: element,
-            delay,
-          });
-
-          const trigger = animation.scrollTrigger;
-
-          if (trigger) {
-            triggers.push(trigger);
-          }
-        });
-
-        const staggerGroups =
-          scroller.querySelectorAll<HTMLElement>(STAGGER_SELECTOR);
-
-        staggerGroups.forEach((group) => {
-          const items =
-            group.querySelectorAll<HTMLElement>(STAGGER_ITEM_SELECTOR);
-
-          if (items.length === 0) {
+        let scanRafId = 0;
+        const scheduleScan = () => {
+          if (scanRafId !== 0) {
             return;
           }
-
-          const animation = createRevealTween(gsap, items, {
-            scroller,
-            trigger: group,
-            start: "top 84%",
-            stagger: 0.12,
+          scanRafId = window.requestAnimationFrame(() => {
+            scanRafId = 0;
+            scan();
           });
+        };
 
-          const trigger = animation.scrollTrigger;
-
-          if (trigger) {
-            triggers.push(trigger);
-          }
-        });
+        const domObserver = new MutationObserver(scheduleScan);
+        domObserver.observe(scroller, { childList: true, subtree: true });
 
         let scrollTriggerRafId = 0;
         let scrollTriggerSkip = 0;
@@ -205,6 +245,10 @@ export function useGsapScrollReveal(
         refresh();
 
         cleanupScroll = () => {
+          domObserver.disconnect();
+          if (scanRafId !== 0) {
+            window.cancelAnimationFrame(scanRafId);
+          }
           scroller.removeEventListener("scroll", onScroll);
           window.removeEventListener("resize", refresh);
           if (scrollTriggerRafId !== 0) {
