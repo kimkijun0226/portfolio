@@ -85,9 +85,14 @@ function createRevealTween(
 }
 
 export function useGsapScrollReveal(
-  scrollRootRef: RefObject<HTMLElement | null>
+  scrollRootRef: RefObject<HTMLElement | null>,
+  enabled = true
 ) {
   useLayoutEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const scroller = scrollRootRef.current;
 
     if (!scroller) {
@@ -264,5 +269,5 @@ export function useGsapScrollReveal(
       cleanupImmediate?.();
       cleanupScroll?.();
     };
-  }, [scrollRootRef]);
+  }, [scrollRootRef, enabled]);
 }

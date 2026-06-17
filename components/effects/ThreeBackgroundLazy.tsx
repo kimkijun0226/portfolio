@@ -41,7 +41,11 @@ function cancelIdle(id: number) {
  *
  * 해결: dynamic 청크 분리 + requestIdleCallback으로 마운트 시점을 뒤로 미룸.
  */
-export function ThreeBackgroundLazy() {
+type ThreeBackgroundLazyProps = {
+  onReady?: () => void;
+};
+
+export function ThreeBackgroundLazy({ onReady }: ThreeBackgroundLazyProps) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -57,6 +61,14 @@ export function ThreeBackgroundLazy() {
       cancelIdle(idleId);
     };
   }, []);
+
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+
+    onReady?.();
+  }, [ready, onReady]);
 
   if (!ready) {
     return null;
