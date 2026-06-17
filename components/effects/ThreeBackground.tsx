@@ -80,10 +80,19 @@ function getThemeMode(): ThemeMode {
   return document.documentElement.dataset.theme === "light" ? "light" : "dark";
 }
 
-export function ThreeBackground() {
+type ThreeBackgroundProps = {
+  onSceneReady?: () => void;
+};
+
+export function ThreeBackground({ onSceneReady }: ThreeBackgroundProps) {
   const canvasWrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ribbonRef = useRef<HTMLDivElement>(null);
+  const onSceneReadyRef = useRef(onSceneReady);
+
+  useEffect(() => {
+    onSceneReadyRef.current = onSceneReady;
+  }, [onSceneReady]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -97,23 +106,7 @@ export function ThreeBackground() {
     let cancelled = false;
     let animationId = 0;
     let disposeScene: (() => void) | undefined;
-
-    const scheduleIdle = (task: () => void) => {
-      if (typeof window.requestIdleCallback === "function") {
-        return window.requestIdleCallback(task, { timeout: 2000 });
-      }
-
-      return window.setTimeout(task, 1);
-    };
-
-    const cancelIdle = (id: number) => {
-      if (typeof window.cancelIdleCallback === "function") {
-        window.cancelIdleCallback(id);
-        return;
-      }
-
-      window.clearTimeout(id);
-    };
+    let sceneReadyCalled = false;
 
     const init = async () => {
       // [성능] 런타임에만 three 로드 — 파티클·리본 WebGL 씬 초기화
@@ -279,6 +272,11 @@ export function ThreeBackground() {
       requestAnimationFrame(() => {
         canvasWrap.style.transform = "scale(1)";
         ribbonContainer.style.opacity = "0.3";
+
+        if (!sceneReadyCalled) {
+          sceneReadyCalled = true;
+          onSceneReadyRef.current?.();
+        }
       });
 
       resizeRibbon();
@@ -303,15 +301,10 @@ export function ThreeBackground() {
       };
     };
 
-    // Three.js 초기화는 첫 reveal과 겹치면 렉이 느껴질 수 있어서
-    // 브라우저 idle 시점으로 미룹니다. (배경은 컴포넌트가 먼저 마운트됨)
-    const idleInitId = scheduleIdle(() => {
-      void init();
-    });
+    void init();
 
     return () => {
       cancelled = true;
-      cancelIdle(idleInitId);
       disposeScene?.();
     };
   }, []);

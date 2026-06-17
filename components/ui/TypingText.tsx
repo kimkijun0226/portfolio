@@ -7,6 +7,7 @@ type TypingTextProps = {
   className?: string;
   speed?: number;
   delay?: number;
+  active?: boolean;
 };
 
 export function TypingText({
@@ -14,11 +15,18 @@ export function TypingText({
   className,
   speed = 42,
   delay = 1200,
+  active = true,
 }: TypingTextProps) {
   const [displayed, setDisplayed] = useState("");
   const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
+    if (!active) {
+      setDisplayed("");
+      setIsComplete(false);
+      return;
+    }
+
     setDisplayed("");
     setIsComplete(false);
 
@@ -45,7 +53,7 @@ export function TypingText({
         window.clearInterval(intervalId);
       }
     };
-  }, [text, speed, delay]);
+  }, [text, speed, delay, active]);
 
   return (
     <span className={`relative block ${className ?? ""}`}>

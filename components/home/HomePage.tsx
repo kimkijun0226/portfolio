@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { ContactSection } from "@/components/sections/ContactSection";
 import { ExperienceSection } from "@/components/sections/ExperienceSection";
 import { Header } from "@/components/layout/Header";
@@ -13,6 +13,7 @@ import { projectsIntro } from "@/data/projects";
 import { sectionIds } from "@/data/sections";
 import { useActiveSection } from "@/hooks/useActiveSection";
 import { useGsapScrollReveal } from "@/hooks/useGsapScrollReveal";
+import { usePageEntryReady } from "@/hooks/usePageEntryReady";
 import { useScrollEndClamp } from "@/hooks/useScrollEndClamp";
 import { useScrollRoot } from "@/hooks/useScrollRoot";
 import { getSectionScrollTarget } from "@/lib/scroll/utils";
@@ -40,25 +41,13 @@ type HomePageProps = {
 
 export function HomePage({ projects }: HomePageProps) {
   const { wrapperRef, contentRef } = useScrollRoot();
-  const [revealEnabled, setRevealEnabled] = useState(false);
+  const { isReady: entryReady, markSceneReady } = usePageEntryReady();
 
   useScrollEndClamp(wrapperRef, contentRef);
 
   const activeId = useActiveSection(sectionIds, wrapperRef, contentRef);
 
-  useGsapScrollReveal(wrapperRef, revealEnabled);
-
-  useEffect(() => {
-    // 배경 로딩이 지연되거나, requestIdleCallback이 늦게 호출되는 환경에서
-    // 텍스트가 영원히 숨겨지지 않도록 상한을 둡니다.
-    const timeoutId = window.setTimeout(() => {
-      setRevealEnabled(true);
-    }, 900);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
+  useGsapScrollReveal(wrapperRef, entryReady);
 
   const scrollToSection = useCallback(
     (sectionId: string) => {
@@ -82,13 +71,12 @@ export function HomePage({ projects }: HomePageProps) {
 
   return (
     <>
-      {/* [성능] Three.js 배경 — ThreeBackgroundLazy가 idle 이후에만 로드 */}
-      <ThreeBackgroundLazy onReady={() => setRevealEnabled(true)} />
+      <ThreeBackgroundLazy onSceneReady={markSceneReady} />
       <Header activeId={activeId} onNavigate={scrollToSection} />
 
       <main ref={wrapperRef} data-scroll-root className={ds.layout.page}>
         <div ref={contentRef}>
-          <HeroSection />
+          <HeroSection entryReady={entryReady} />
           <ExperienceSection
             wrapperRef={wrapperRef}
             contentRef={contentRef}

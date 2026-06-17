@@ -10,7 +10,11 @@ import {
 } from "@/lib/hero-animation";
 import { ds } from "@/lib/design-system";
 
-export function HeroSection() {
+type HeroSectionProps = {
+  entryReady?: boolean;
+};
+
+export function HeroSection({ entryReady = false }: HeroSectionProps) {
   return (
     <section id="about" data-snap-section className={ds.layout.sectionShell}>
       <div className={ds.layout.hero}>
@@ -46,12 +50,14 @@ export function HeroSection() {
                 className={`${ds.layout.line} min-h-[1.65em]`}
                 delay={TYPING_START}
                 speed={TYPING_SPEED}
+                active={entryReady}
               />
               <TypingText
                 text={profile.bioLine2}
                 className={`${ds.layout.line} mt-1 min-h-[1.65em]`}
                 delay={getSecondLineTypingDelay()}
                 speed={TYPING_SPEED}
+                active={entryReady}
               />
             </div>
 
