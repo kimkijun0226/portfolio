@@ -128,6 +128,18 @@ export function useGsapScrollReveal(
         const seenReveal = new WeakSet<HTMLElement>();
         const seenStagger = new WeakSet<HTMLElement>();
 
+        let refreshRafId = 0;
+        const scheduleRefresh = () => {
+          if (refreshRafId !== 0) {
+            return;
+          }
+
+          refreshRafId = window.requestAnimationFrame(() => {
+            refreshRafId = 0;
+            ScrollTrigger.refresh();
+          });
+        };
+
         const scan = () => {
           const immediateElements =
             scroller.querySelectorAll<HTMLElement>(IMMEDIATE_SELECTOR);
@@ -193,7 +205,7 @@ export function useGsapScrollReveal(
             }
           });
 
-          ScrollTrigger.refresh();
+          scheduleRefresh();
         };
 
         scan();
@@ -253,6 +265,9 @@ export function useGsapScrollReveal(
           domObserver.disconnect();
           if (scanRafId !== 0) {
             window.cancelAnimationFrame(scanRafId);
+          }
+          if (refreshRafId !== 0) {
+            window.cancelAnimationFrame(refreshRafId);
           }
           scroller.removeEventListener("scroll", onScroll);
           window.removeEventListener("resize", refresh);
