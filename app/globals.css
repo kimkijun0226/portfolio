@@ -117,6 +117,7 @@ html[data-theme="light"] {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* [성능·UX] GSAP 로드 전 reveal 요소가 잠깐 보이는 FOUC 방지 — GSAP fromTo와 쌍으로 동작 */
   [data-reveal-immediate],
   [data-reveal],
   [data-reveal-stagger] [data-reveal-item] {

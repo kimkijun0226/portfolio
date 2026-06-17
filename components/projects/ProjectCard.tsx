@@ -2,6 +2,7 @@ import Image from "next/image";
 import { HiArrowTopRightOnSquare } from "react-icons/hi2";
 import { FaGithub } from "react-icons/fa";
 import type { Project } from "@/data/projects";
+import { portfolioSiteDevSummary } from "@/data/portfolioSiteDev";
 
 type ProjectCardProps = {
   project: Project;
@@ -60,6 +61,44 @@ export function ProjectCard({ project, layout = "default" }: ProjectCardProps) {
         <p className="mt-2 text-body leading-[1.6] text-muted sm:mt-3 sm:leading-[1.65]">
           {project.description}
         </p>
+
+        {project.devSections && project.devSections.length > 0 ? (
+          <div className="mt-5 max-h-[min(42vh,22rem)] overflow-y-auto rounded-xl border border-fg/10 bg-fg/[0.03] p-4 sm:mt-6 sm:p-5">
+            <p className="text-label font-semibold tracking-label text-fg uppercase">
+              개발 정리
+            </p>
+            <p className="mt-2 text-caption leading-[1.7] text-muted">
+              {portfolioSiteDevSummary}
+            </p>
+            <ul className="mt-4 flex flex-col gap-5">
+              {project.devSections.map((section) => (
+                <li
+                  key={section.title}
+                  className="border-t border-fg/8 pt-4 first:border-t-0 first:pt-0"
+                >
+                  <h4 className="text-caption font-semibold text-fg">
+                    {section.title}
+                  </h4>
+                  <p className="mt-2 text-caption leading-[1.65] text-muted">
+                    <span className="font-medium text-fg/80">문제 </span>
+                    {section.problem}
+                  </p>
+                  <p className="mt-2 text-caption leading-[1.65] text-muted">
+                    <span className="font-medium text-fg/80">해결 </span>
+                    {section.solution}
+                  </p>
+                  <p className="mt-2 text-caption leading-[1.65] text-muted">
+                    <span className="font-medium text-fg/80">관련 코드 </span>
+                    {section.codePath}
+                  </p>
+                  <p className="mt-1 text-caption leading-[1.65] text-muted/90">
+                    {section.codeRole}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
           {project.chips.map((chip) => (

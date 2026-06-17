@@ -7,9 +7,11 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600"],
   variable: "--font-space-grotesk",
+  // [성능] display: swap — 웹폰트 로드 전에도 시스템 폰트로 텍스트를 먼저 표시
   display: "swap",
 });
 
+// [성능] Supabase API 도메인 preconnect — Projects 데이터 fetch 시 TLS 핸드셰이크를 앞당김
 const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
   : null;

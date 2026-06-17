@@ -18,6 +18,14 @@ import { useScrollRoot } from "@/hooks/useScrollRoot";
 import { getSectionScrollTarget } from "@/lib/scroll/utils";
 import { ds } from "@/lib/design-system";
 
+/**
+ * [성능] SkillsSection 코드 스플릿
+ *
+ * 이전 문제: 정적 import 시 data/skills.ts의 react-icons 수십 개가
+ * 첫 방문 JS 번들에 포함됨 (화면 아래 섹션인데도 즉시 로드).
+ *
+ * ssr: false — 서버 HTML에는 넣지 않고, 클라이언트에서 별도 청크로 받아옵니다.
+ */
 const SkillsSection = dynamic(
   () =>
     import("@/components/sections/SkillsSection").then(
@@ -61,6 +69,7 @@ export function HomePage({ projects }: HomePageProps) {
 
   return (
     <>
+      {/* [성능] Three.js 배경 — ThreeBackgroundLazy가 idle 이후에만 로드 */}
       <ThreeBackgroundLazy />
       <Header activeId={activeId} onNavigate={scrollToSection} />
 

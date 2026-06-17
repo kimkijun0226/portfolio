@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { getScrollFrameIsScrolling } from "@/lib/scroll/frame";
 
+// three는 파일 상단에서 import하지 않음 — useEffect 안에서 동적 import해 메인 번들 크기를 줄입니다.
+
 const RIBBON_VERTEX_SHADER = `
   varying vec3 vEC;
   uniform float time;
@@ -97,6 +99,7 @@ export function ThreeBackground() {
     let disposeScene: (() => void) | undefined;
 
     const init = async () => {
+      // [성능] 런타임에만 three 로드 — 파티클·리본 WebGL 씬 초기화
       const THREE = await import("three");
 
       if (cancelled) {

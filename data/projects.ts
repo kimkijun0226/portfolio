@@ -1,3 +1,9 @@
+import {
+  portfolioSiteDevSections,
+  portfolioSiteDevSummary,
+  type ProjectDevSection,
+} from "@/data/portfolioSiteDev";
+
 export type Project = {
   id: string;
   topicId?: number;
@@ -9,6 +15,8 @@ export type Project = {
   liveUrl?: string;
   githubUrl?: string;
   chips: string[];
+  /** Projects 카드 하단 '개발 정리' 섹션 (포트폴리오 사이트 등) */
+  devSections?: ProjectDevSection[];
 };
 
 export const projectsIntro =
@@ -93,6 +101,7 @@ export const fallbackProjects: Project[] = [
     title: "Portfolio — Next.js 인터랙티브 포트폴리오",
     description:
       "Next.js 16 App Router 기반 단일 페이지 포트폴리오입니다. 커스텀 스크롤 루트와 GSAP ScrollTrigger로 섹션 스냅·가로 프로젝트 슬라이드를 구현했고, Three.js WebGL 파티클 배경과 Skills 카드 3D 틸트 인터랙션을 적용했습니다. Supabase topic 테이블과 연동해 블로그 portfolio 카테고리 글이 Projects 섹션에 자동 반영됩니다.",
+    devSections: portfolioSiteDevSections,
     tag: "사이드 프로젝트",
     liveUrl: "https://kimkijun.com",
     githubUrl: "https://github.com/kimkijun0226/portfolio",

@@ -3,6 +3,15 @@
 import { type RefObject, useLayoutEffect } from "react";
 import { getScrollFrameIsScrolling } from "@/lib/scroll/frame";
 
+/**
+ * GSAP ScrollTrigger 기반 섹션 등장 애니메이션 훅
+ *
+ * [성능] gsap/ScrollTrigger를 파일 상단 static import하지 않고
+ * useLayoutEffect 안에서 import("@/lib/gsap")로 비동기 로드합니다.
+ * Hero의 data-reveal-immediate는 globals.css로 먼저 숨긴 뒤,
+ * GSAP 청크가 도착하면 fromTo로 등장시킵니다.
+ */
+
 const REVEAL_SELECTOR = "[data-reveal]";
 const IMMEDIATE_SELECTOR = "[data-reveal-immediate]";
 const STAGGER_SELECTOR = "[data-reveal-stagger]";
@@ -93,6 +102,7 @@ export function useGsapScrollReveal(
     let cleanupImmediate: (() => void) | undefined;
     let cleanupScroll: (() => void) | undefined;
 
+    // [성능] GSAP·ScrollTrigger를 별도 청크로 분리 로드
     void import("@/lib/gsap").then(
       ({ gsap, registerGsapPlugins, ScrollTrigger }) => {
         if (cancelled) {

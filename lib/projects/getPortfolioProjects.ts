@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { fallbackProjects, projectsIntro, type Project } from "@/data/projects";
+import { portfolioSiteDevSections } from "@/data/portfolioSiteDev";
 import {
   extractBlockNotePlainText,
   extractBlockNotePortfolioLinks,
@@ -7,6 +8,8 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const PORTFOLIO_TOPIC_CATEGORY = "portfolio";
+
+/** Supabase topic 조회 + unstable_cache 재검증 주기(초). page.tsx revalidate와 맞춥니다. */
 export const PORTFOLIO_REVALIDATE_SECONDS = 60;
 
 type PortfolioTopicRow = {
@@ -47,6 +50,17 @@ function mapTopicToProject(topic: PortfolioTopicRow): Project | null {
   };
 }
 
+function attachPortfolioDevNotes(projects: Project[]): Project[] {
+  // 이 포트폴리오 사이트(topic 128) 카드에만 '개발 정리' 섹션 데이터를 붙입니다.
+  return projects.map((project) => {
+    if (project.id === "topic-128" || project.topicId === 128) {
+      return { ...project, devSections: portfolioSiteDevSections };
+    }
+
+    return project;
+  });
+}
+
 async function fetchPortfolioProjects(): Promise<Project[]> {
   try {
     const supabase = createSupabaseServerClient();
@@ -66,20 +80,29 @@ async function fetchPortfolioProjects(): Promise<Project[]> {
 
     if (error) {
       console.error("[getPortfolioProjects]", error.message);
-      return fallbackProjects;
+      return attachPortfolioDevNotes(fallbackProjects);
     }
 
     const projects = (data ?? [])
       .map((row) => mapTopicToProject(row as PortfolioTopicRow))
       .filter((project): project is Project => project !== null);
 
-    return projects.length > 0 ? projects : fallbackProjects;
+    return attachPortfolioDevNotes(
+      projects.length > 0 ? projects : fallbackProjects
+    );
   } catch (error) {
     console.error("[getPortfolioProjects]", error);
-    return fallbackProjects;
+    return attachPortfolioDevNotes(fallbackProjects);
   }
 }
 
+/**
+ * [성능] Next.js unstable_cache — 동일한 Supabase 조회 결과를 서버 메모리에 잠깐 보관합니다.
+ *
+ * fetchPortfolioProjects: 실제 DB 쿼리 함수
+ * ["portfolio-projects"]: 캐시 키
+ * revalidate: 60 — 60초 지나면 다음 요청 때 백그라운드 갱신
+ */
 const getCachedPortfolioProjects = unstable_cache(
   fetchPortfolioProjects,
   ["portfolio-projects"],
