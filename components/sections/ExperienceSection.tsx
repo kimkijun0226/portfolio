@@ -96,7 +96,7 @@ export function ExperienceSection({
 
           <ul
             ref={listRef}
-            className="relative flex flex-col gap-16 overflow-visible sm:gap-20"
+            className="relative flex flex-col gap-10 overflow-visible sm:gap-12"
           >
             {contributedProjects.map((project, index) => (
               <li
