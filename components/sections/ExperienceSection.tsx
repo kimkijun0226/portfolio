@@ -41,7 +41,6 @@ export function ExperienceSection({
     <section
       id="experience"
       ref={sectionRef}
-      data-snap-section
       className={ds.layout.sectionTall}
     >
       <div

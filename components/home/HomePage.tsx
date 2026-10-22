@@ -40,7 +40,7 @@ type HomePageProps = {
 };
 
 export function HomePage({ projects }: HomePageProps) {
-  const { wrapperRef, contentRef } = useScrollRoot();
+  const { wrapperRef, contentRef, scrollTo } = useScrollRoot();
   const { isReady: entryReady, markSceneReady } = usePageEntryReady();
 
   useScrollEndClamp(wrapperRef, contentRef);
@@ -59,14 +59,14 @@ export function HomePage({ projects }: HomePageProps) {
         return;
       }
 
-      wrapper.scrollTop = getSectionScrollTarget(
+      scrollTo(getSectionScrollTarget(
         sectionId,
         target,
         content,
         wrapper
-      );
+      ));
     },
-    [wrapperRef, contentRef]
+    [wrapperRef, contentRef, scrollTo]
   );
 
   return (

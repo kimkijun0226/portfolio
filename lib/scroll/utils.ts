@@ -18,7 +18,7 @@ export function getSectionScrollTarget(
     return top + element.offsetHeight - wrapper.clientHeight;
   }
 
-  return top;
+  return Math.max(0, top - getScrollPaddingTop(wrapper));
 }
 
 export function getSectionOffsetTop(

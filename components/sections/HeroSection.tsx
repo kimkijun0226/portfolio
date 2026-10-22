@@ -16,7 +16,7 @@ type HeroSectionProps = {
 
 export function HeroSection({ entryReady = false }: HeroSectionProps) {
   return (
-    <section id="about" data-snap-section className={ds.layout.sectionShell}>
+    <section id="about" className={ds.layout.sectionShell}>
       <div className={ds.layout.hero}>
         <div className={ds.layout.grid}>
           <div className={ds.layout.col}>

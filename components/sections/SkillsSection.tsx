@@ -36,7 +36,6 @@ export function SkillsSection() {
     <>
       <section
         id="skills"
-        data-snap-section
         className={`${ds.layout.sectionTall} relative overflow-visible`}
       >
         <div

@@ -23,7 +23,6 @@ export function ContactSection({ onNavigate }: ContactSectionProps) {
   return (
     <section
       id="contact"
-      data-snap-section
       className="relative flex min-h-svh shrink-0 flex-col"
     >
       <div className="flex flex-1 flex-col justify-center py-16 sm:py-20">

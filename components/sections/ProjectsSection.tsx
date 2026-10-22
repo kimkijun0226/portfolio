@@ -42,7 +42,6 @@ export function ProjectsSection({
       {projects.map((project, index) => (
         <div
           key={`snap-${project.id}`}
-          data-snap-section
           data-projects-snap={index}
           aria-hidden
           className="pointer-events-none absolute left-0 w-full"

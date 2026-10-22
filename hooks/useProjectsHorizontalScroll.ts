@@ -68,7 +68,6 @@ export function useProjectsHorizontalScroll(
     );
 
     let sectionTop = 0;
-    let sectionEntryTop = 0;
     let scrollHeight = 0;
     let slideStep = 0;
     let slideWidth = 0;
@@ -110,21 +109,14 @@ export function useProjectsHorizontalScroll(
     };
 
     const rebuildMetrics = () => {
-      const scrollPaddingTop = getScrollPaddingTop(wrapper);
-
       syncSectionHeight();
       sectionTop = getSectionOffsetTop(section, content);
-      sectionEntryTop = sectionTop - scrollPaddingTop;
       syncSlideWidths();
     };
 
     const updateTrack = () => {
       const scrollTop = wrapper.scrollTop;
       const scrollPaddingTop = getScrollPaddingTop(wrapper);
-
-      if (scrollTop < sectionEntryTop || scrollTop >= sectionTop + scrollHeight) {
-        return;
-      }
 
       const scrollIn = clamp(
         scrollTop - sectionTop + scrollPaddingTop,
