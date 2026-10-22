@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { getScrollFrameIsScrolling } from "@/lib/scroll/frame";
+import { createFrameClock } from "@/lib/animation/frame-clock";
 
 // three는 파일 상단에서 import하지 않음 — useEffect 안에서 동적 import해 메인 번들 크기를 줄입니다.
 
@@ -69,7 +69,7 @@ const RIBBON_FRAGMENT_SHADER = `
 type ThemeMode = "dark" | "light";
 
 function getPixelRatio() {
-  return Math.min(window.devicePixelRatio || 1, 1.25);
+  return Math.min(window.devicePixelRatio || 1, 1);
 }
 
 function getParticleCount() {
@@ -222,27 +222,23 @@ export function ThreeBackground({ onSceneReady }: ThreeBackgroundProps) {
         resizeRibbon();
       };
 
-      const renderLoop = () => {
-        if (document.hidden) {
+      const sampleFrame = createFrameClock();
+      const renderLoop = (timestamp: number) => {
+        const delta = sampleFrame(timestamp, document.hidden);
+        if (delta === null) {
           animationId = window.requestAnimationFrame(renderLoop);
           return;
         }
 
-        const isScrolling = getScrollFrameIsScrolling();
+        rot += delta * 6;
+        const radian = (rot * Math.PI) / 180;
+        particleCamera.position.x = 1000 * Math.sin(radian);
+        particleCamera.position.z = 1000 * Math.cos(radian);
+        particleMesh.rotation.y += delta * 0.06;
+        particleRenderer.render(particleScene, particleCamera);
 
-        if (!isScrolling) {
-          rot += 0.1;
-          const radian = (rot * Math.PI) / 180;
-          particleCamera.position.x = 1000 * Math.sin(radian);
-          particleCamera.position.z = 1000 * Math.cos(radian);
-          particleMesh.rotation.y += 0.001;
-          particleRenderer.render(particleScene, particleCamera);
-        }
-
-        if (!isScrolling) {
-          ribbonMaterial.uniforms.time.value += 0.01;
-          ribbonRenderer.render(ribbonScene, ribbonCamera);
-        }
+        ribbonMaterial.uniforms.time.value += delta * 0.6;
+        ribbonRenderer.render(ribbonScene, ribbonCamera);
 
         animationId = window.requestAnimationFrame(renderLoop);
       };
@@ -280,7 +276,7 @@ export function ThreeBackground({ onSceneReady }: ThreeBackgroundProps) {
       });
 
       resizeRibbon();
-      renderLoop();
+      animationId = window.requestAnimationFrame(renderLoop);
       window.addEventListener("resize", handleResize);
       document.addEventListener("visibilitychange", onVisibilityChange);
 
