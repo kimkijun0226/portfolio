@@ -1,3 +1,4 @@
+import { SiReact } from "react-icons/si";
 import type { ContributedProject } from "@/data/experience";
 
 type ExperienceCardProps = {
@@ -24,9 +25,20 @@ export function ExperienceCard({
           >
             {project.category}
           </p>
-          <h3 className="text-[1.375rem] leading-tight font-bold tracking-tight text-fg">
-            {project.title}
-          </h3>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <h3 className="text-[1.375rem] leading-tight font-bold tracking-tight text-fg">
+              {project.title}
+            </h3>
+            {project.techStack.includes("React Native") && (
+              <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1.5 text-caption font-semibold text-sky-400">
+                <SiReact aria-hidden className="size-4" />
+                React Native
+                <span className="border-l border-sky-400/25 pl-2 text-xs font-medium text-fg/65">
+                  iOS · Android
+                </span>
+              </span>
+            )}
+          </div>
           <p className="mt-1.5 text-role font-medium text-fg/80">
             {project.role}
           </p>
