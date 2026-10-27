@@ -298,3 +298,76 @@ test('scrolling past the last horizontal card does not pull back or snap to the 
   assert.equal(wrapper.scrollTop, 750);
   cleanup();
 });
+
+function setProjectMarkers(wrapper, positions = [600, 1200, 1800]) {
+  wrapper.querySelectorAll = () => positions.map(position => {
+    const marker = new Surface();
+    marker.getBoundingClientRect = () => ({ top: position - wrapper.scrollTop, height: 1 });
+    return marker;
+  });
+}
+
+test('a short wheel gesture animates exactly one complete chapter', () => {
+  const { wrapper, send, flush, cleanup } = setup();
+  setProjectMarkers(wrapper);
+  wrapper.scrollTop = 600;
+  const wheel = send(wrapper, 'wheel', { deltaY: 80 });
+  assert.equal(wheel.defaultPrevented, true);
+  assert.equal(wrapper.scrollTop, 600);
+  flush(0);
+  flush(300);
+  assert.ok(wrapper.scrollTop > 600 && wrapper.scrollTop < 1200);
+  send(wrapper, 'wheel', { deltaY: 50 });
+  flush(1200);
+  assert.equal(wrapper.scrollTop, 1200);
+  cleanup();
+});
+
+test('trackpad momentum cannot skip chapters or cancel the current transition', () => {
+  const { wrapper, send, flush, idle, cleanup } = setup();
+  setProjectMarkers(wrapper);
+  wrapper.scrollTop = 600;
+  send(wrapper, 'wheel', { deltaY: 80 });
+  flush(0);
+  for (let time = 50; time <= 800; time += 50) {
+    assert.equal(send(wrapper, 'wheel', { deltaY: 5 }).defaultPrevented, true);
+    flush(time);
+  }
+  assert.equal(wrapper.scrollTop, 1200);
+  idle();
+  send(wrapper, 'wheel', { deltaY: 80 });
+  flush(1000);
+  flush(2200);
+  assert.equal(wrapper.scrollTop, 1800);
+  cleanup();
+});
+
+test('opposite wheel direction reverses smoothly to the previous chapter', () => {
+  const { wrapper, send, flush, cleanup } = setup();
+  setProjectMarkers(wrapper);
+  wrapper.scrollTop = 600;
+  send(wrapper, 'wheel', { deltaY: 80 });
+  flush(0);
+  flush(300);
+  const position = wrapper.scrollTop;
+  send(wrapper, 'wheel', { deltaY: -80 });
+  assert.equal(wrapper.scrollTop, position);
+  flush(400);
+  flush(1600);
+  assert.equal(wrapper.scrollTop, 600);
+  cleanup();
+});
+
+test('wheel stays native outside projects, at exit boundaries, and during browser zoom', () => {
+  const { wrapper, send, cleanup } = setup();
+  setProjectMarkers(wrapper);
+  wrapper.scrollTop = 0;
+  assert.equal(send(wrapper, 'wheel', { deltaY: 80 }).defaultPrevented, false);
+  wrapper.scrollTop = 600;
+  assert.equal(send(wrapper, 'wheel', { deltaY: -80 }).defaultPrevented, false);
+  wrapper.scrollTop = 1800;
+  assert.equal(send(wrapper, 'wheel', { deltaY: 80 }).defaultPrevented, false);
+  wrapper.scrollTop = 1200;
+  assert.equal(send(wrapper, 'wheel', { deltaY: 80, ctrlKey: true }).defaultPrevented, false);
+  cleanup();
+});

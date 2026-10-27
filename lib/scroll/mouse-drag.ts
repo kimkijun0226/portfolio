@@ -13,12 +13,40 @@ export function attachMouseDrag(wrapper: HTMLElement) {
   let touching = false;
   let lastScroll = wrapper.scrollTop;
   let direction = 0;
+  let wheelTarget: number | null = null;
+  let wheelDirection = 0;
+  let wheelDistance = 0;
+  let wheelSettling = false;
+  let wheelIdleTimer = 0;
+
+  const resetWheelGesture = () => {
+    window.clearTimeout(wheelIdleTimer);
+    wheelDistance = 0;
+    wheelSettling = false;
+    wheelDirection = 0;
+  };
+
+  const waitForWheelIdle = () => {
+    window.clearTimeout(wheelIdleTimer);
+    wheelIdleTimer = window.setTimeout(resetWheelGesture, 180);
+  };
+
+  const getProjectTargets = (scope = wrapper) => {
+    const padding = Number.parseFloat(getComputedStyle(wrapper).scrollPaddingTop) || 0;
+    const origin = wrapper.getBoundingClientRect().top;
+    const max = Math.max(0, wrapper.scrollHeight - wrapper.clientHeight);
+    return Array.from(scope.querySelectorAll<HTMLElement>("[data-projects-snap]"))
+      .map((marker) => Math.max(0, Math.min(max,
+        wrapper.scrollTop + marker.getBoundingClientRect().top - origin - padding)))
+      .sort((a, b) => a - b);
+  };
 
   const stopAnimation = () => {
     window.cancelAnimationFrame(rafId);
     window.clearTimeout(idleTimer);
     rafId = 0;
     idleTimer = 0;
+    wheelTarget = null;
   };
 
   const scrollTo = (position: number) => {
@@ -47,6 +75,7 @@ export function attachMouseDrag(wrapper: HTMLElement) {
       } else {
         rafId = 0;
         direction = 0;
+        wheelTarget = null;
       }
     };
     rafId = window.requestAnimationFrame(animate);
@@ -54,15 +83,8 @@ export function attachMouseDrag(wrapper: HTMLElement) {
 
   const settle = (horizontalOnly = false) => {
     idleTimer = 0;
-    const padding = Number.parseFloat(getComputedStyle(wrapper).scrollPaddingTop) || 0;
-    const origin = wrapper.getBoundingClientRect().top;
     const start = wrapper.scrollTop;
-    const max = Math.max(0, wrapper.scrollHeight - wrapper.clientHeight);
-    const scope = horizontalOnly && projects ? projects : wrapper;
-    const targets = Array.from(scope.querySelectorAll<HTMLElement>("[data-projects-snap]"))
-      .map((marker) => Math.max(0, Math.min(max,
-        start + marker.getBoundingClientRect().top - origin - padding)))
-      .sort((a, b) => a - b);
+    const targets = getProjectTargets(horizontalOnly && projects ? projects : wrapper);
     if (targets.length === 0) return;
 
     if (!horizontalOnly) {
@@ -114,6 +136,7 @@ export function attachMouseDrag(wrapper: HTMLElement) {
       return;
     }
     stopAnimation();
+    resetWheelGesture();
     direction = 0;
     suppressClick = false;
     if (event.target.closest('a, button, input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="dialog"], [data-no-drag]')) {
@@ -181,13 +204,63 @@ export function attachMouseDrag(wrapper: HTMLElement) {
     if (pointerId !== null) event.preventDefault();
   };
   const onInterrupt = () => {
+    resetWheelGesture();
     finish();
     stopAnimation();
     scheduleSettle();
   };
   const onWheel = (event: WheelEvent) => {
-    onInterrupt();
-    direction = Math.sign(event.deltaY || event.deltaX) || direction;
+    if (event.ctrlKey || !event.cancelable) return;
+    if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable], [role="dialog"], [data-no-drag]')) return;
+
+    const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX || 0)
+      ? event.deltaY : event.deltaX;
+    if (!delta) {
+      onInterrupt();
+      return;
+    }
+    const nextDirection = Math.sign(delta);
+
+    // Consume the momentum tail as part of the same chapter transition.
+    if (nextDirection === wheelDirection && (wheelSettling || (rafId !== 0 && wheelTarget !== null))) {
+      event.preventDefault();
+      waitForWheelIdle();
+      return;
+    }
+
+    const targets = getProjectTargets();
+    const current = wrapper.scrollTop;
+    const first = targets[0];
+    const last = targets[targets.length - 1];
+    let target: number | undefined;
+    if (current < first - 1) {
+      if (nextDirection > 0 && first - current <= wrapper.clientHeight * 0.35) target = first;
+    } else if (current > last + 1) {
+      if (nextDirection < 0 && current - last <= wrapper.clientHeight * 0.35) target = last;
+    } else {
+      target = nextDirection > 0
+        ? targets.find(value => value > current + 1)
+        : targets.findLast(value => value < current - 1);
+    }
+
+    if (target === undefined) {
+      onInterrupt();
+      direction = nextDirection;
+      return;
+    }
+
+    event.preventDefault();
+    if (nextDirection !== wheelDirection) wheelDistance = 0;
+    wheelDirection = nextDirection;
+    direction = nextDirection;
+    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? wrapper.clientHeight : 1;
+    wheelDistance += Math.abs(delta) * unit;
+    waitForWheelIdle();
+    if (wheelDistance < 24) return;
+
+    wheelSettling = true;
+    scrollTo(target);
+    wheelTarget = target;
   };
   const onTouchStart = () => {
     onInterrupt();
@@ -211,7 +284,7 @@ export function attachMouseDrag(wrapper: HTMLElement) {
   wrapper.addEventListener("lostpointercapture", onPointerEnd);
   wrapper.addEventListener("click", onClick, true);
   wrapper.addEventListener("dragstart", onDragStart);
-  wrapper.addEventListener("wheel", onWheel, { passive: true });
+  wrapper.addEventListener("wheel", onWheel, { passive: false });
   wrapper.addEventListener("touchstart", onTouchStart, { passive: true });
   wrapper.addEventListener("touchend", onTouchEnd, { passive: true });
   wrapper.addEventListener("touchcancel", onTouchEnd, { passive: true });
@@ -219,6 +292,7 @@ export function attachMouseDrag(wrapper: HTMLElement) {
   window.addEventListener("blur", finish);
 
   const destroy = () => {
+    resetWheelGesture();
     const capturedId = pointerId;
     pointerId = null;
     if (capturedId !== null && wrapper.hasPointerCapture(capturedId)) {
