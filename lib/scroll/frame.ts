@@ -5,6 +5,7 @@ let rafId = 0;
 let attachedWrapper: HTMLElement | null = null;
 let scrollIdleTimer = 0;
 let isScrolling = false;
+let lastFlushedTop = -1;
 
 export function getScrollFrameIsScrolling() {
   return isScrolling;
@@ -27,6 +28,7 @@ function setScrollingState(scrolling: boolean) {
 
 function flush() {
   rafId = 0;
+  lastFlushedTop = attachedWrapper?.scrollTop ?? -1;
   listeners.forEach((listener) => listener());
 }
 
@@ -36,6 +38,8 @@ function onScroll() {
   scrollIdleTimer = window.setTimeout(() => {
     setScrollingState(false);
   }, 140);
+
+  if (attachedWrapper?.scrollTop === lastFlushedTop) return;
 
   if (rafId !== 0) {
     return;
@@ -51,6 +55,7 @@ function attach(wrapper: HTMLElement) {
 
   attachedWrapper?.removeEventListener("scroll", onScroll);
   attachedWrapper = wrapper;
+  lastFlushedTop = -1;
   wrapper.addEventListener("scroll", onScroll, { passive: true });
 }
 
@@ -82,4 +87,11 @@ export function subscribeScrollFrame(
       detach(attachedWrapper);
     }
   };
+}
+
+// Lenis emits during its animation frame, so subscribers update before the same paint.
+export function flushScrollFrame(wrapper: HTMLElement) {
+  if (attachedWrapper !== wrapper || wrapper.scrollTop === lastFlushedTop) return;
+  window.cancelAnimationFrame(rafId);
+  flush();
 }

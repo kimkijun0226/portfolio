@@ -40,7 +40,7 @@ export function useProjectsHorizontalScroll(
     const slideStep = wrapper.clientHeight;
 
     if (slideStep > 0) {
-      section.style.height = `${slideCount * slideStep}px`;
+      section.style.height = `${Math.max(0, slideCount * slideStep - getScrollPaddingTop(wrapper))}px`;
     }
 
     return () => {
@@ -68,6 +68,7 @@ export function useProjectsHorizontalScroll(
     );
 
     let sectionTop = 0;
+    let scrollPaddingTop = 0;
     let scrollHeight = 0;
     let slideStep = 0;
     let slideWidth = 0;
@@ -85,7 +86,7 @@ export function useProjectsHorizontalScroll(
 
       if (viewportHeight > 0) {
         slideStep = viewportHeight;
-        scrollHeight = slideCount * slideStep;
+        scrollHeight = Math.max(0, slideCount * slideStep - getScrollPaddingTop(wrapper));
         maxScrollIn = Math.max(0, (slideCount - 1) * slideStep);
         section.style.height = `${scrollHeight}px`;
         syncSnapMarkers();
@@ -110,13 +111,13 @@ export function useProjectsHorizontalScroll(
 
     const rebuildMetrics = () => {
       syncSectionHeight();
+      scrollPaddingTop = getScrollPaddingTop(wrapper);
       sectionTop = getSectionOffsetTop(section, content);
       syncSlideWidths();
     };
 
     const updateTrack = () => {
       const scrollTop = wrapper.scrollTop;
-      const scrollPaddingTop = getScrollPaddingTop(wrapper);
 
       const scrollIn = clamp(
         scrollTop - sectionTop + scrollPaddingTop,
@@ -147,11 +148,21 @@ export function useProjectsHorizontalScroll(
     updateTrack();
 
     let resizeTimer = 0;
+    let resizeIndex: number | null = null;
 
     const onResize = () => {
+      if (resizeTimer === 0) {
+        const position = wrapper.scrollTop - sectionTop + getScrollPaddingTop(wrapper);
+        resizeIndex = position >= -1 && position <= maxScrollIn + 1 ? activeIndexRef.current : null;
+      }
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => {
         rebuildMetrics();
+        if (resizeIndex !== null) {
+          wrapper.scrollTop = sectionTop - getScrollPaddingTop(wrapper) + resizeIndex * slideStep;
+        }
+        resizeIndex = null;
+        resizeTimer = 0;
         lastTransform = "";
         updateTrack();
       }, 150);

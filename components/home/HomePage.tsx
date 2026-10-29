@@ -74,7 +74,7 @@ export function HomePage({ projects }: HomePageProps) {
       <ThreeBackgroundLazy onSceneReady={markSceneReady} />
       <Header activeId={activeId} onNavigate={scrollToSection} />
 
-      <main ref={wrapperRef} data-scroll-root className={ds.layout.page}>
+      <main ref={wrapperRef} data-scroll-root tabIndex={0} className={ds.layout.page}>
         <div ref={contentRef}>
           <HeroSection entryReady={entryReady} />
           <ExperienceSection

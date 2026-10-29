@@ -1,6 +1,7 @@
 "use client";
 
 import { type RefObject, useEffect } from "react";
+import { getScrollPaddingTop } from "@/lib/scroll/utils";
 
 function syncViewportHeights(wrapper: HTMLElement) {
   const viewportHeight = wrapper.clientHeight;
@@ -14,7 +15,7 @@ function syncViewportHeights(wrapper: HTMLElement) {
   );
 
   if (projectsSticky) {
-    projectsSticky.style.height = `${viewportHeight}px`;
+    projectsSticky.style.height = `${Math.max(0, viewportHeight - getScrollPaddingTop(wrapper))}px`;
   }
 }
 

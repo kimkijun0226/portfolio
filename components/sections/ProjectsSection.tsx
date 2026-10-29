@@ -51,7 +51,7 @@ export function ProjectsSection({
 
       <div
         data-projects-sticky
-        className="sticky top-0 h-svh w-full overflow-hidden"
+        className="sticky top-[calc(var(--spacing-header)+1.25rem)] h-[calc(100svh-var(--spacing-header)-1.25rem)] w-full overflow-hidden"
       >
         <div className="relative flex h-full min-h-0 w-full flex-col items-center justify-center gap-3 pb-8 sm:gap-4">
           <header data-reveal className={`${ds.layout.sectionContent} shrink-0`}>
