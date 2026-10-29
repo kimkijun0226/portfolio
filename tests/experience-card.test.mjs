@@ -23,7 +23,8 @@ test('React Native project identifies its framework and both mobile platforms be
   const header = markup.match(/<header[^>]*>([\s\S]*?)<\/header>/)[1];
   assert.match(header, /React Native/);
   assert.match(header, /iOS · Android/);
-  assert.match(header, /<svg/);
+  assert.match(header, /· React Native · iOS · Android/);
+  assert.doesNotMatch(header, /<svg/);
 });
 
 test('web projects retain their existing title without a mobile badge', () => {
