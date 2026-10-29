@@ -14,6 +14,29 @@ export type Project = {
 export const projectsIntro =
   "개인적으로 만들어 본 사이드 프로젝트들입니다.";
 
+export const revieProject: Project = {
+  id: "revie-shopping-mall",
+  topicId: 124,
+  title: "RÊVIE (레비) — 라이프스타일 쇼핑몰",
+  description:
+    "패션·뷰티·리빙 상품을 하나의 취향으로 연결하는 라이프스타일 쇼핑몰입니다. 상품 탐색·검색, 장바구니, 토스페이먼츠 결제, 구매 리뷰를 구현하고 관리자 화면에서 매출 분석과 주문·배송 상태를 관리합니다. Supabase Auth·RLS로 접근 권한을 제어하고, TanStack Query와 Zustand로 서버·클라이언트 상태를 분리했습니다.",
+  tag: "사이드 프로젝트",
+  liveUrl: "https://commerce-dashboard-pied.vercel.app/",
+  githubUrl: "https://github.com/kimkijun0226/commerce-dashboard",
+  chips: [
+    "Next.js",
+    "React 19",
+    "TypeScript",
+    "Supabase",
+    "TanStack Query",
+    "Zustand",
+    "Tailwind CSS",
+    "Storybook",
+    "Toss Payments",
+    "Chart.js",
+  ],
+};
+
 export const fallbackProjects: Project[] = [
   {
     id: "my-page-project",
@@ -35,26 +58,7 @@ export const fallbackProjects: Project[] = [
       "shadcn/ui",
     ],
   },
-  {
-    id: "cursor-commerce-dashboard",
-    title: "Cursor Commerce Dashboard",
-    description:
-      "일반 커머스(홈·상품·장바구니·체크아웃)와 어드민 대시보드를 한 저장소에서 다루는 풀스택 프론트엔드 프로젝트입니다. Supabase Auth·RLS·Postgres 마이그레이션을 연동하고, Figma Commerce 템플릿 기준으로 디자인 토큰을 맞췄으며 Talk to Figma MCP로 컴포넌트 스펙을 동기화했습니다.",
-    tag: "사이드 프로젝트",
-    liveUrl: "https://commerce-dashboard-pied.vercel.app/",
-    githubUrl: "https://github.com/kimkijun0226/commerce-dashboard",
-    chips: [
-      "Next.js",
-      "React 19",
-      "TypeScript",
-      "Supabase",
-      "TanStack Query",
-      "Zustand",
-      "Tailwind CSS",
-      "Storybook",
-      "Toss Payments",
-    ],
-  },
+  revieProject,
   {
     id: "comunity-app",
     title: "커뮤니티 앱 (Expo)",

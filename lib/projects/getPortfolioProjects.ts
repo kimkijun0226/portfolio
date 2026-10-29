@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { fallbackProjects, projectsIntro, type Project } from "@/data/projects";
+import { fallbackProjects, projectsIntro, revieProject, type Project } from "@/data/projects";
 import {
   extractBlockNotePlainText,
   extractBlockNotePortfolioLinks,
@@ -28,6 +28,7 @@ function mapTopicToProject(topic: PortfolioTopicRow): Project | null {
     return null;
   }
 
+  const details = topic.id === revieProject.topicId ? revieProject : null;
   const contentLinks = extractBlockNotePortfolioLinks(topic.content);
 
   const description =
@@ -38,14 +39,14 @@ function mapTopicToProject(topic: PortfolioTopicRow): Project | null {
   return {
     id: `topic-${topic.id}`,
     topicId: topic.id,
-    title: topic.title,
-    description,
+    title: details?.title ?? topic.title,
+    description: details?.description ?? description,
     tag: topic.portfolio_tag ?? "사이드 프로젝트",
     image: topic.thumbnail ?? undefined,
-    imageAlt: topic.title,
+    imageAlt: details?.title ?? topic.title,
     liveUrl: topic.live_url ?? contentLinks.liveUrl,
     githubUrl: topic.github_url ?? contentLinks.githubUrl,
-    chips: topic.portfolio_chips ?? [],
+    chips: details?.chips ?? topic.portfolio_chips ?? [],
   };
 }
 
