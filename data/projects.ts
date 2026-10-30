@@ -16,6 +16,8 @@ export const projectsIntro =
 
 export const revieProject: Project = {
   id: "revie-shopping-mall",
+  image: "/images/projects/revie-shopping-mall.png",
+  imageAlt: "RÊVIE 레비 쇼핑몰의 리빙 상품 목록 화면",
   topicId: 124,
   title: "RÊVIE (레비) — 라이프스타일 쇼핑몰",
   description:
