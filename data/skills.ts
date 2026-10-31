@@ -69,7 +69,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#61DAFB",
         level: "expert",
         description:
-          "유지보수하기 쉬운 화면 구조를 만들기 위해 Feature 단위 폴더 구조와 props·상태 범위 분리를 적용했습니다. 회사 프로젝트와 사이드 프로젝트에서 지속적으로 사용하고 있습니다.",
+          "문자 발송 플랫폼과 스마트오더·키오스크·POS 화면을 React로 개발했습니다. Feature 기반 폴더 구조와 공통 컴포넌트를 구성하고 UI와 비즈니스 로직을 분리했습니다.",
         Icon: SiReact,
       },
       {
@@ -78,7 +78,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#3178C6",
         level: "expert",
         description:
-          "런타임 오류를 줄이기 위해 API 응답, props, store 상태에 타입을 먼저 정의했습니다. any 사용을 최소화하는 규칙을 프로젝트에 맞게 적용했습니다.",
+          "React·React Native 프로젝트에서 API 응답, 컴포넌트 props와 상태에 타입을 정의했습니다. swagger-typescript-api를 활용해 API 타입을 자동 생성하는 개발 환경을 구성했습니다.",
         Icon: SiTypescript,
       },
       {
@@ -96,7 +96,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#61DAFB",
         level: "proficient",
         description:
-          "모바일에서도 서비스를 완결하기 위해 React Native로 문자 발송 앱을 개발하고 스토어에 배포했습니다. WebView, 결제 연동, WebSocket 동기화, 심사 대응을 담당했습니다.",
+          "기존 WebView 앱의 주요 화면을 React Native로 전환했습니다. Safe Area·키보드 대응, 공통 UI, WebSocket 채팅, FCM 알림과 카메라·파일·디바이스 권한 처리를 구현했습니다.",
         Icon: TbBrandReactNative,
       },
       {
@@ -105,7 +105,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#646CFF",
         level: "proficient",
         description:
-          "빌드 시간을 단축하기 위해 CRA 프로젝트를 Vite로 마이그레이션했습니다. 개인 프로젝트 번들러로도 계속 사용하고 있습니다.",
+          "문자 발송 플랫폼의 CRA 개발 환경을 Vite로 마이그레이션했습니다. 스마트오더·키오스크·POS 프로젝트에서도 Vite를 사용했습니다.",
         Icon: SiVite,
       },
       {
@@ -114,7 +114,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#FF4154",
         level: "proficient",
         description:
-          "서버 데이터를 안정적으로 관리하기 위해 캐시 갱신, 로딩·에러 처리, 낙관적 업데이트를 프로젝트 상황에 맞게 적용했습니다.",
+          "주소록과 주문 데이터의 서버 상태를 관리했습니다. Infinite Query의 maxPages로 캐시 페이지 수를 제한하고 Optimistic Update로 주소록 수정·주문 상태 변경을 처리했습니다.",
         Icon: SiReactquery,
       },
       {
@@ -123,7 +123,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#8B5CF6",
         level: "proficient",
         description:
-          "불필요한 보일러플레이트를 줄이기 위해 장바구니, 검색 UI, 모달 상태 등 클라이언트 전용 상태를 Zustand로 관리했습니다.",
+          "문자 발송 플랫폼의 상태 관리를 Recoil에서 Zustand로 전환했습니다. 스마트오더·키오스크·POS에서도 클라이언트 상태를 관리했습니다.",
         Icon: ZustandIcon,
       },
       {
@@ -132,7 +132,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#38BDF8",
         level: "proficient",
         description:
-          "프로젝트마다 스타일 기준을 맞추기 위해 Tailwind v4 @theme로 디자인 토큰과 반응형, 다크 모드를 통합했습니다.",
+          "문자 발송 플랫폼과 스마트오더·키오스크·POS의 UI를 구현했습니다. PC·태블릿·모바일 반응형 레이아웃과 공통 컴포넌트 스타일을 구성했습니다.",
         Icon: SiTailwindcss,
       },
       {
@@ -141,7 +141,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#fafafa",
         level: "proficient",
         description:
-          "공통 UI 개발 속도를 높이기 위해 폼, 모달, 토스트에 shadcn/ui를 도입하고 프로젝트별 theme variant를 조정했습니다.",
+          "스마트오더·키오스크·POS에서 Button, Dialog, Table, Tabs, Toast 등 공통 UI를 구현했습니다. 기기별 사용 환경에 맞춰 화면을 구성했습니다.",
         Icon: SiShadcnui,
       },
       {
@@ -150,7 +150,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#007FFF",
         level: "familiar",
         description:
-          "복잡한 엔터프라이즈 UI를 빠르게 구성하기 위해 DataGrid, DatePicker 등 MUI 컴포넌트를 활용했습니다. 테마와 sx로 디자인 시스템에 맞게 스타일을 조정했습니다.",
+          "문자 발송·주소록·채팅·대시보드·사용자 관리 화면을 MUI와 디자인 시안에 맞춰 구현했습니다. 반응형 기능을 활용해 복합 화면의 레이아웃을 구성했습니다.",
         Icon: SiMui,
       },
       {
@@ -159,7 +159,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#FF4785",
         level: "proficient",
         description:
-          "컴포넌트 단위 협업을 원활하게 하기 위해 공통 UI를 Storybook으로 문서화했습니다. 대시보드 프로젝트에서 디자인 핸드오프에 사용하고 있습니다.",
+          "공통 컴포넌트를 Storybook으로 문서화하고 UI 재사용 구조를 관리했습니다. 디자이너·기획자·백엔드 개발자와 화면 요구사항과 API 명세를 협의했습니다.",
         Icon: SiStorybook,
       },
       {
@@ -237,7 +237,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#F24E1E",
         level: "proficient",
         description:
-          "디자인과 개발 간 간격을 줄이기 위해 와이어프레임과 컴포넌트 시스템을 Figma로 정리해 핸드오프했습니다. Figma MCP로 스펙 확인 흐름도 도입했습니다.",
+          "스마트오더·키오스크·POS·관리자 시스템의 전체 UI 구조를 Figma로 설계했습니다. 기기별 사용 환경에 맞는 디자인 시안을 만들고 퍼블리싱에 반영했습니다.",
         Icon: SiFigma,
       },
       {
@@ -290,7 +290,7 @@ export const skillCategories: SkillCategory[] = [
         color: "#ffffff",
         level: "proficient",
         description:
-          "팀 코딩 규칙을 일관되게 유지하기 위해 Cursor Rules를 정리하고 반복 작업 자동화에 활용했습니다. Figma MCP와 함께 디자인-코드 동기화에도 사용했습니다.",
+          "Cursor Rules로 프로젝트의 코딩 규칙을 정리하고 Figma MCP를 활용해 디자인 정보를 개발 과정에 반영했습니다.",
         Icon: CursorIcon,
       },
       {

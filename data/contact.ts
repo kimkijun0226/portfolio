@@ -15,7 +15,7 @@ export const contact = {
   footer: {
     name: "김기준",
     role: "Frontend Developer",
-    bio: "컴포넌트 설계와 성능 최적화로 UX와 DX를 함께 개선하는 프론트엔드 개발자입니다. 새로운 기술과 협업 속에서 빠르게 성장하는 편입니다.",
+    bio: "UI/UX 디자인과 웹 퍼블리싱, React·React Native 개발을 담당한 프론트엔드 개발자입니다. 문자 발송 플랫폼과 스마트오더·키오스크·POS 시스템을 개발했습니다.",
   },
   connect: [
     {

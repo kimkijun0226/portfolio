@@ -45,7 +45,7 @@ export function ExperienceCard({
 
         <div className="border-t border-fg/10 pt-5">
           <p className="mb-3 text-label font-semibold tracking-label text-muted uppercase">
-            주요 성과
+            주요 담당 업무
           </p>
           <ul className="flex list-disc flex-col gap-2 pl-4.5 text-caption leading-[1.65] text-fg/70 marker:text-fg/40">
             {project.highlights.map((highlight) => (

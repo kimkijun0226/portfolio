@@ -19,7 +19,7 @@ const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
 export const metadata: Metadata = {
   title: "김기준 · 프론트엔드 개발자",
   description:
-    "컴포넌트 설계와 성능 최적화로 UX와 DX 모두를 개선하는 프론트엔드 개발자 김기준입니다.",
+    "UI/UX 디자인과 웹 퍼블리싱, React·React Native 개발을 담당한 프론트엔드 개발자 김기준입니다.",
 };
 
 export default function RootLayout({

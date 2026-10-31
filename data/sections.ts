@@ -15,7 +15,7 @@ export const sections: Section[] = [
   {
     id: "experience",
     label: "Experience",
-    description: "기여 프로젝트와 성과",
+    description: "프로젝트별 담당 업무와 구현 내용",
     color: "#a78bfa",
   },
   {
